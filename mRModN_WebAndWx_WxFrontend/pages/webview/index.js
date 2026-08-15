@@ -1,4 +1,4 @@
-const { isTrustedWebUrl, buildWebUrl } = require('../../utils/config/api');
+const { isTrustedWebUrl, buildEmbedResultsUrl, CLIENT_BUILD_ID } = require('../../utils/config/api');
 
 Page({
   data: {
@@ -12,11 +12,12 @@ Page({
       this.failAndBack('缺少任务 ID，无法加载 RNA 结构。');
       return;
     }
-    const url = buildWebUrl(`/embed/results/${encodeURIComponent(jobId)}?tab=gcn&source=wx`);
+    const url = buildEmbedResultsUrl(jobId, 'gcn');
     if (!isTrustedWebUrl(url)) {
       this.failAndBack('RNA 结构页面地址不受信任，请检查当前 LAN/production 环境配置。');
       return;
     }
+    console.info(`[mRModN ${CLIENT_BUILD_ID}] loading interactive RNA 3D:`, url);
     this.setData({ url, loading: true, error: '' });
   },
   failAndBack(content) {

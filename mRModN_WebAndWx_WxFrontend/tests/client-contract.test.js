@@ -50,6 +50,22 @@ test('technical Web addresses use rgcnformer while the product brand remains mRM
     api.buildWebUrl('/embed/results/job-1?tab=gcn&source=wx'),
     'http://100.74.161.109:9006/rgcnformer/embed/results/job-1?tab=gcn&source=wx',
   );
+  assert.equal(
+    api.buildWebUrl('/mrmodn/embed/results/job-1?tab=gcn'),
+    'http://100.74.161.109:9006/rgcnformer/embed/results/job-1?tab=gcn',
+  );
+  assert.equal(
+    api.buildWebUrl('/rgcnformer/embed/results/job-1?tab=gcn'),
+    'http://100.74.161.109:9006/rgcnformer/embed/results/job-1?tab=gcn',
+  );
+  assert.equal(
+    api.buildWebUrl('/rgcnformer/mrmodn/embed/results/job-1?tab=gcn'),
+    'http://100.74.161.109:9006/rgcnformer/embed/results/job-1?tab=gcn',
+  );
+  assert.equal(
+    api.buildEmbedResultsUrl('job/1', 'gcn'),
+    `http://100.74.161.109:9006/rgcnformer/embed/results/job%2F1?tab=gcn&source=wx&client=${api.CLIENT_BUILD_ID}`,
+  );
 });
 
 test('business errors do not switch to the backup API origin', async () => {

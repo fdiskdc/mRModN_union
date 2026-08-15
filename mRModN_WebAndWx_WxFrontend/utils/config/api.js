@@ -25,6 +25,8 @@ const ENVIRONMENTS = {
 const CURRENT_ENV = 'lan';
 const config = ENVIRONMENTS[CURRENT_ENV];
 const STORAGE_KEY = 'mrmodnApiServerIndex';
+// 用于 WebView 缓存隔离和现场确认；每次影响嵌入页的发布都应更新。
+const CLIENT_BUILD_ID = 'wx-20260815-2';
 
 function joinUrl(...parts) {
   return parts.map((part, index) => {
@@ -50,7 +52,29 @@ function getApiBaseUrl(index = getCurrentServerIndex()) {
 }
 function getWebBaseUrl() { return joinUrl(config.webOrigin, config.webBasePath); }
 function buildApiUrl(endpoint, index = getCurrentServerIndex()) { return joinUrl(getApiBaseUrl(index), endpoint); }
-function buildWebUrl(path) { return joinUrl(getWebBaseUrl(), path); }
+function normalizeWebPath(path) {
+  const value = String(path || '').trim();
+  if (!value) return '';
+  // 兼容历史调用方传入 /mrmodn/... 或已经带 /rgcnformer/... 的情况，
+  // 防止最终地址变成 /rgcnformer/mrmodn/... 或 /rgcnformer/rgcnformer/...
+  const queryIndex = value.indexOf('?');
+  const pathname = queryIndex >= 0 ? value.slice(0, queryIndex) : value;
+  const query = queryIndex >= 0 ? value.slice(queryIndex) : '';
+  let normalized = `/${pathname.replace(/^\/+/, '')}`;
+  const knownBasePaths = [config.webBasePath, '/rgcnformer', '/mrmodn'];
+  knownBasePaths.forEach((basePath) => {
+    const base = `/${String(basePath || '').replace(/^\/+|\/+$/g, '')}`;
+    if (base === '/') return;
+    if (normalized === base) normalized = '/';
+    else if (normalized.startsWith(`${base}/`)) normalized = normalized.slice(base.length);
+  });
+  return `${normalized}${query}`;
+}
+function buildWebUrl(path) { return joinUrl(getWebBaseUrl(), normalizeWebPath(path)); }
+function buildEmbedResultsUrl(jobId, tab = 'gcn') {
+  const query = `tab=${encodeURIComponent(tab)}&source=wx&client=${encodeURIComponent(CLIENT_BUILD_ID)}`;
+  return buildWebUrl(`/embed/results/${encodeURIComponent(jobId)}?${query}`);
+}
 function isTrustedWebUrl(url) {
   try {
     const expected = `${config.webOrigin}${config.webBasePath}`;
@@ -75,7 +99,8 @@ const ENDPOINTS = {
 };
 
 module.exports = {
-  ENVIRONMENTS, CURRENT_ENV, API_SERVERS: config.apiOrigins,
+  ENVIRONMENTS, CURRENT_ENV, CLIENT_BUILD_ID, API_SERVERS: config.apiOrigins,
   ENDPOINTS, getCurrentServerIndex, switchToNextServer, resetServerIndex,
-  getApiBaseUrl, getWebBaseUrl, buildApiUrl, buildWebUrl, isTrustedWebUrl
+  getApiBaseUrl, getWebBaseUrl, buildApiUrl, normalizeWebPath, buildWebUrl,
+  buildEmbedResultsUrl, isTrustedWebUrl
 };
