@@ -87,7 +87,7 @@ export const ENDPOINTS = {
 
 // ==================== Vite Proxy Configuration ====================
 
-export const DEFAULT_PROXY_TARGET = 'http://localhost:8005';
+export const DEFAULT_PROXY_TARGET = 'http://localhost:9005';
 export const PROXY_TARGET = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_PROXY_TARGET) ?? DEFAULT_PROXY_TARGET;
 
 // ==================== TypeScript Interface ====================

@@ -32,7 +32,7 @@ echo "✓ Conda environment activated: $CONDA_ENV_NAME"
 # Service Configuration (Auto-detecting CPU cores)
 # ============================================================================
 HOST=0.0.0.0
-PORT=8005
+PORT=9005
 
 # Automatically determine CPU core count
 if [ -f /proc/cpuinfo ]; then

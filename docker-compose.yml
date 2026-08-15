@@ -1,0 +1,37 @@
+services:
+  re-id-cluster:
+    image: re-id-cluster:9006-9005
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NODE_IMAGE: ${NODE_IMAGE:-docker.m.daocloud.io/library/node:22-bookworm-slim}
+        PYTHON_IMAGE: ${PYTHON_IMAGE:-docker.m.daocloud.io/library/python:3.11-slim}
+        DEBIAN_MIRROR: ${DEBIAN_MIRROR:-https://mirrors.tuna.tsinghua.edu.cn/debian}
+        DEBIAN_SECURITY_MIRROR: ${DEBIAN_SECURITY_MIRROR:-https://mirrors.tuna.tsinghua.edu.cn/debian-security}
+        # 127.0.0.1 inside a build container is not the WSL host. Docker
+        # Desktop exposes the WSL/Windows proxy through this hostname.
+        HTTP_PROXY: ${DOCKER_PROXY_URL:-http://host.docker.internal:7897}
+        HTTPS_PROXY: ${DOCKER_PROXY_URL:-http://host.docker.internal:7897}
+        NO_PROXY: localhost,127.0.0.1,::1
+    container_name: re_id_cluster_9006_9005
+    init: true
+    ports:
+      - "9005:9005"
+      - "9006:9006"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      HTTP_PROXY: ${DOCKER_PROXY_URL:-http://host.docker.internal:7897}
+      HTTPS_PROXY: ${DOCKER_PROXY_URL:-http://host.docker.internal:7897}
+      NO_PROXY: localhost,127.0.0.1,::1
+      http_proxy: ${DOCKER_PROXY_URL:-http://host.docker.internal:7897}
+      https_proxy: ${DOCKER_PROXY_URL:-http://host.docker.internal:7897}
+      no_proxy: localhost,127.0.0.1,::1
+      WX_APPID: ${WX_APPID:-}
+      WX_SECRET: ${WX_SECRET:-}
+      GUNICORN_WORKERS: ${GUNICORN_WORKERS:-1}
+      CELERY_CONCURRENCY: ${CELERY_CONCURRENCY:-1}
+      REID_TORCH_NUM_THREADS: ${REID_TORCH_NUM_THREADS:-4}
+      REID_CACHE_SIZE: ${REID_CACHE_SIZE:-8}
+    restart: unless-stopped

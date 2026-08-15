@@ -174,7 +174,7 @@ export default function NpuTopMonitor() {
 
       <div className="nputop-containers">
         <div><span>f3ab55c0c126</span><span>rgcnformer_webandwx_backend-worker</span><span>“celery -A tasks_doc…”</span><span>Up</span><span>8000/tcp</span><b>rgcn_worker</b></div>
-        <div><span>5dd0f4c8437a</span><span>rgcnformer_webandwx_backend-backend</span><span>“gunicorn -w 1 -b 0.…”</span><span>Up</span><span>0.0.0.0:8005→8000/tcp</span><b>rgcn_backend</b></div>
+        <div><span>5dd0f4c8437a</span><span>rgcnformer_webandwx_backend-backend</span><span>“gunicorn -w 1 -b 0.…”</span><span>Up</span><span>0.0.0.0:9005→9005/tcp</span><b>rgcn_backend</b></div>
       </div>
     </section>
   );

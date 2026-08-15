@@ -61,7 +61,7 @@ export default defineConfig(({ mode }) => {
   // Load env file based on mode
   const env = loadEnv(mode, process.cwd(), '')
 
-  const proxyTarget = env.VITE_PROXY_TARGET || 'http://localhost:8005'
+  const proxyTarget = env.VITE_PROXY_TARGET || 'http://localhost:9005'
 
   return {
     // 生产环境直接部署到 1Panel 网站根目录。
@@ -69,6 +69,7 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     server: {
       host: '0.0.0.0',  // 👈 添加这一行，监听所有网络接口
+      port: 9006,
       proxy: {
         // 将所有 /api 开头的请求代理到后端，并保留原始路径
         '/mrmodn/api': {

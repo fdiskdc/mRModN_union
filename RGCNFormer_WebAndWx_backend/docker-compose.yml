@@ -11,7 +11,7 @@ services:
     container_name: rgcn_backend
     command: gunicorn -w ${GUNICORN_WORKERS:-1} -b 0.0.0.0:8000 --timeout 120 wsgi:app
     ports:
-      - "${BACKEND_PORT:-8005}:8000"
+      - "${BACKEND_PORT:-9005}:8000"
     volumes:
       - .:/app
       - ${DATA_DIR:-./data}:/app/data
