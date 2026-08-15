@@ -3,10 +3,10 @@
  *
  * 浏览器入口:创建 React 根、加载全局样式、装配 BrowserRouter、RnaProvider、LanguageProvider
  * 三个全局 Provider,然后渲染 <App /> 路由树。所有可视化页面都通过此入口挂载。
- * 默认部署在 `/mrmodn`,可通过 VITE_APP_BASE_PATH 覆盖。
+ * 默认部署在 `/rgcnformer`,可通过 VITE_APP_BASE_PATH 覆盖。
  * Browser entry: creates the React root, loads global styles, and composes three global
  * providers (BrowserRouter → RnaProvider → LanguageProvider) before rendering the <App />
- * route tree. All visualization pages are mounted through this entry. The app is served under the configurable Vite base path (default `/mrmodn`).
+ * route tree. All visualization pages are mounted through this entry. The app is served under the configurable Vite base path (default `/rgcnformer`).
  *
  * 功能模块 / Modules:
  * - createRoot(...).render(): React 18 根节点创建 + 渲染 / React 18 root + render
@@ -37,7 +37,7 @@
  *   // index.html
  *   <div id="root"></div>
  *   <script type="module" src="/src/main.tsx"></script>
- *   // Vite 启动: npm run dev → http://localhost:9006/mrmodn/
+ *   // Vite 启动: npm run dev → http://localhost:9006/rgcnformer/
  */
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'

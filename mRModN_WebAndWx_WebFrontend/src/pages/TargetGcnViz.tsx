@@ -35,7 +35,7 @@
  *
  * 使用示例 / Usage Example:
  *   <Route path="/target-gcn" element={<TargetGcnViz />} />
- *   // 浏览器 /mrmodn/target-gcn
+ *   // 浏览器 /rgcnformer/target-gcn
  */
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import ForceGraph3D from 'react-force-graph-3d';

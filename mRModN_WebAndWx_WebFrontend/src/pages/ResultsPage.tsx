@@ -36,7 +36,7 @@
  *
  * 使用示例 / Usage Example:
  *   <Route path="/results/:jobId" element={<ResultsPage />} />
- *   // 浏览器 /mrmodn/results/<uuid>
+ *   // 浏览器 /rgcnformer/results/<uuid>
  */
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';

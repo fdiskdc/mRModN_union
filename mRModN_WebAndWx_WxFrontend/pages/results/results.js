@@ -1,14 +1,35 @@
-const { ENDPOINTS, buildWebUrl } = require('../../utils/config/api');
+const { ENDPOINTS } = require('../../utils/config/api');
 const { requestWithFallback } = require('../../utils/request');
 const { MODIFICATIONS } = require('../../utils/constants/modifications');
 const { normalizeGraph, topAttentionIndices } = require('../../utils/graph');
 
 const GROUP_LABELS = { 'Group A': '腺嘌呤 A', 'Group C': '胞嘧啶 C', 'Group G': '鸟嘌呤 G', 'Group U': '尿嘧啶 U', A: '腺嘌呤 A', C: '胞嘧啶 C', G: '鸟嘌呤 G', U: '尿嘧啶 U' };
-const RESULT_TABS = [{value:'overview',label:'概览'},{value:'classification',label:'分类'},{value:'attention',label:'注意力'},{value:'structure',label:'RNA 结构'}];
+const RESULT_TABS = [{value:'overview',label:'概览',icon:'⌂'},{value:'classification',label:'分类',icon:'▦'},{value:'attention',label:'注意力',icon:'◉'},{value:'structure',label:'RNA 结构',icon:'⌬'}];
 
 function formatClassification(value) {
-  if (!value) return null;
-  return { ...value, name: 'RNA 修饰分类', children: (value.children || []).map((group) => ({ ...group, name: GROUP_LABELS[group.name] || group.name, children: group.children || [] })) };
+  const sourceGroups = (value && value.children) || [];
+  const sourceItems = {};
+  sourceGroups.forEach((group) => {
+    (group.children || []).forEach((item) => { sourceItems[item.name] = item; });
+  });
+  const groupOrder = ['A', 'C', 'G', 'U'];
+  const children = groupOrder.map((base) => {
+    const sourceGroup = sourceGroups.find((group) => group.name === base || group.name === `Group ${base}`) || {};
+    const groupChildren = MODIFICATIONS.filter((item) => item.base === base).map((meta) => ({
+      name: meta.name,
+      probability: 0,
+      threshold: null,
+      isPredicted: false,
+      ...(sourceItems[meta.name] || {}),
+    }));
+    return {
+      ...sourceGroup,
+      name: GROUP_LABELS[sourceGroup.name] || GROUP_LABELS[base],
+      isPredicted: groupChildren.some((item) => item.isPredicted),
+      children: groupChildren,
+    };
+  });
+  return { ...(value || {}), name: 'RNA 修饰分类', children };
 }
 function predictedNames(classification) {
   const names=[];(classification&&classification.children||[]).forEach(group=>(group.children||[]).forEach(item=>{if(item.isPredicted)names.push(item.name);}));return names;
@@ -47,7 +68,9 @@ Page({
   },
   loadSingle(jobId,originalIndex){return requestWithFallback(ENDPOINTS.RESULT(jobId),{method:'GET'}).then(res=>{const items=this.data.results.slice();const position=items.findIndex(item=>item.jobId===jobId);if(position>=0){items[position]=prepareResult({...items[position],...res.data,index:originalIndex},position+1);this.setData({results:items,currentResult:position===this.data.currentResultIndex?items[position]:this.data.currentResult});}}).catch(()=>{});},
   onSequenceTab(e){const index=Number(e.currentTarget.dataset.index);this.setData({currentResultIndex:index,currentResult:this.data.results[index],attentionDistribution:null,attentionClasses:[],attentionClassIndex:0,selectedAttentionClass:null,selectedPosition:-1});if(this.data.currentResultTab==='attention'&&this.data.attentionMode==='distribution')this.loadAttentionDistribution();},
-  onResultTab(e){const tab=e.detail.value;this.setData({currentResultTab:tab});if(tab==='attention'&&this.data.attentionMode==='distribution')this.loadAttentionDistribution();},
+  switchResultTab(tab){if(!tab)return;this.setData({currentResultTab:tab});if(tab==='attention'&&this.data.attentionMode==='distribution')this.loadAttentionDistribution();},
+  onResultTab(e){this.switchResultTab(e.detail.value);},
+  onResultTabTap(e){this.switchResultTab(e.currentTarget.dataset.value);},
   onSummaryOpen(e){this.setData({currentResultTab:e.detail.tab});if(e.detail.tab==='attention'&&this.data.attentionMode==='distribution')this.loadAttentionDistribution();},
   setAttentionMode(e){const mode=e.currentTarget.dataset.mode;this.setData({attentionMode:mode});if(mode==='distribution')this.loadAttentionDistribution();},
   loadAttentionDistribution(force){
@@ -61,7 +84,7 @@ Page({
   onAttentionSite(e){this.setData({selectedPosition:e.detail.index});},
   onChartSelect(e){this.setData({selectedPosition:e.detail.index});},
   onGraphSelect(e){this.setData({selectedPosition:e.detail.index});},
-  openWebView(){const result=this.data.currentResult;if(!result||!result.jobId)return;const url=buildWebUrl(`/embed/results/${encodeURIComponent(result.jobId)}?tab=gcn`);wx.navigateTo({url:`/pages/webview/index?jobId=${encodeURIComponent(result.jobId)}&url=${encodeURIComponent(url)}`});},
+  openWebView(){const result=this.data.currentResult;if(!result||!result.jobId)return;wx.navigateTo({url:`/pages/webview/index?jobId=${encodeURIComponent(result.jobId)}`});},
   retry(){this.setData({isLoading:true,error:''});this.loadBatch();},
   backHome(){wx.navigateBack({fail:()=>wx.reLaunch({url:'/pages/index/index'})});}
 });

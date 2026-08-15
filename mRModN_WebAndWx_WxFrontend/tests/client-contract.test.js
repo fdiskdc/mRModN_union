@@ -32,6 +32,26 @@ function reset(responsesForTest) {
   requests = [];
 }
 
+test('sample sequence endpoint is provided by the backend API', () => {
+  assert.equal(api.ENDPOINTS.SAMPLE_SEQUENCE, '/sample-sequence');
+  assert.equal(
+    api.buildApiUrl(api.ENDPOINTS.SAMPLE_SEQUENCE),
+    'http://100.74.161.109:9005/api/v1/sample-sequence',
+  );
+});
+
+
+test('technical Web addresses use rgcnformer while the product brand remains mRModN', () => {
+  assert.equal(
+    api.getWebBaseUrl(),
+    'http://100.74.161.109:9006/rgcnformer',
+  );
+  assert.equal(
+    api.buildWebUrl('/embed/results/job-1?tab=gcn&source=wx'),
+    'http://100.74.161.109:9006/rgcnformer/embed/results/job-1?tab=gcn&source=wx',
+  );
+});
+
 test('business errors do not switch to the backup API origin', async () => {
   reset([{ statusCode: 400, data: { code: 'INVALID_SEQUENCE', message: 'bad sequence' } }]);
   await assert.rejects(

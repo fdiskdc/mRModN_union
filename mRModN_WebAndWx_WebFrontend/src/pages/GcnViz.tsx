@@ -37,7 +37,7 @@
  * 使用示例 / Usage Example:
  *   // App.tsx
  *   <Route path="/gcn" element={<GcnViz />} />
- *   // 浏览器访问 http://host:5173/mrmodn/gcn
+ *   // 浏览器访问 http://host:5173/rgcnformer/gcn
  */
 import React, { useState, useEffect, useRef } from 'react';
 import ForceGraph3D, { type ForceGraphMethods } from 'react-force-graph-3d';
@@ -104,9 +104,10 @@ const MORANDI_COLORS = MORANDI_BASE_COLORS;
 
 interface GcnVizProps {
   data?: GraphData;
+  compact?: boolean;
 }
 
-const GcnViz: React.FC<GcnVizProps> = ({ data: propData }) => {
+const GcnViz: React.FC<GcnVizProps> = ({ data: propData, compact = false }) => {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -210,10 +211,10 @@ const GcnViz: React.FC<GcnVizProps> = ({ data: propData }) => {
 
     window.addEventListener('resize', handleResize);
 
-    const observer = new MutationObserver(() => {
-      updateSize();
-    });
+    const resizeObserver = new ResizeObserver(updateSize);
+    if (containerRef.current) resizeObserver.observe(containerRef.current);
 
+    const observer = new MutationObserver(updateSize);
     const siderElement = document.querySelector('.ant-layout-sider');
     if (siderElement) {
       observer.observe(siderElement, {
@@ -227,6 +228,7 @@ const GcnViz: React.FC<GcnVizProps> = ({ data: propData }) => {
       if (resizeTimeoutRef.current) {
         clearTimeout(resizeTimeoutRef.current);
       }
+      resizeObserver.disconnect();
       observer.disconnect();
     };
   }, []);
@@ -360,8 +362,8 @@ const GcnViz: React.FC<GcnVizProps> = ({ data: propData }) => {
 
   return (
     <div style={{ width: '100%' }}>
-      <Card 
-        style={{ 
+      {!compact && <Card
+        style={{
           marginBottom: 16, 
           background: '#faf8f5', 
           borderColor: MORANDI_COLORS.tube,
@@ -374,47 +376,26 @@ const GcnViz: React.FC<GcnVizProps> = ({ data: propData }) => {
         <Typography.Paragraph style={{ marginTop: 8, marginBottom: 0, color: '#333333' }}>
           {t('The GCN Graph visualization displays the graph structure representation of your RNA sequence as processed by the Graph Convolutional Network. Each node represents a nucleotide in the sequence, and edges represent the structural relationships between them. Interact with the 3D graph by dragging to rotate, scrolling to zoom, and right-click dragging to pan.')}
         </Typography.Paragraph>
-      </Card>
+      </Card>}
 
       <div
         ref={containerRef}
         className="gcn-viz-container"
         style={{
           width: '100%',
-          height: '100%',
-          minHeight: '400px',
+          height: compact ? '100vh' : '72vh',
+          minHeight: compact ? '100vh' : '480px',
+          maxHeight: compact ? 'none' : '760px',
           position: 'relative',
+          touchAction: 'none',
+          WebkitUserSelect: 'none',
+          userSelect: 'none',
           background: MORANDI_COLORS.background,
-          borderRadius: '8px',
+          borderRadius: compact ? 0 : '8px',
           overflow: 'hidden',
           boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
         }}
       >
-        {/* Debug Info */}
-        <div style={{
-          position: 'absolute',
-          top: 10,
-          left: 10,
-          background: 'rgba(255,255,255,0.9)',
-          padding: '10px',
-          borderRadius: '4px',
-          fontSize: '12px',
-          zIndex: 50,
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          color: '#000000',
-        }}>
-          <div>Container: {containerSize.width}x{containerSize.height}</div>
-          <div>Data Loaded: {gcnData ? 'Yes' : 'No'}</div>
-          {gcnData && (
-            <>
-              <div>Nodes: {gcnData.nodes.length}</div>
-              <div>Edges: {gcnData.edges.length}</div>
-              {gcnData.nodes.length > 0 && (
-                <div>First Node ID: {gcnData.nodes[0].id}</div>
-              )}
-            </>
-          )}
-        </div>
         {loading && (
           <Spin
             tip={t('Loading graph data...')}
@@ -470,7 +451,10 @@ const GcnViz: React.FC<GcnVizProps> = ({ data: propData }) => {
                 return isBackboneLink(link) ? 10 : 20;
               }}
               backgroundColor={MORANDI_BASE_COLORS.background}
+              controlType="orbit"
+              enableNavigationControls={true}
               enableNodeDrag={true}
+              showNavInfo={false}
               cooldownTicks={200}
             />
           </>
@@ -478,7 +462,7 @@ const GcnViz: React.FC<GcnVizProps> = ({ data: propData }) => {
       </div>
 
       {/* Nucleotide Legend - Horizontal below 3D model */}
-      <div style={{
+      {!compact && <div style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -523,7 +507,7 @@ const GcnViz: React.FC<GcnVizProps> = ({ data: propData }) => {
           <div style={{ width: '20px', height: '3px', backgroundColor: MORANDI_BASE_COLORS.pairingLink }} />
           <span style={{ fontSize: '12px', color: '#333333' }}>{t('Pairing')}</span>
         </div>
-      </div>
+      </div>}
     </div>
   );
 };

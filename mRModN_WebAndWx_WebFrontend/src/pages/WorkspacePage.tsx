@@ -44,7 +44,7 @@
  *
  * 使用示例 / Usage Example:
  *   <Route path="/" element={<WorkspacePage />} />
- *   // 浏览器 /mrmodn/
+ *   // 浏览器 /rgcnformer/
  */
 
 import React, { useState, useCallback, useEffect } from 'react';

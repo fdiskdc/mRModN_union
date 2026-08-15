@@ -46,7 +46,7 @@
  *
  * 使用示例 / Usage Example:
  *   <Route path="/compare" element={<ComparePage />} />
- *   // 浏览器 /mrmodn/compare
+ *   // 浏览器 /rgcnformer/compare
  */
 import React, { useState } from 'react';
 import { Layout, Button } from 'antd';

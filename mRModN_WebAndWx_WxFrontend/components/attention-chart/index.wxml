@@ -1,1 +1,8 @@
-<view class="card"><view wx:if="{{classData}}" class="header"><view><text class="title">{{classData.name}} 完整分布</text><text class="meta">概率 {{classData.probabilityText}}</text></view><text class="badge">{{classData.is_predicted ? '预测阳性' : '未检出'}}</text></view><canvas type="2d" id="attentionCanvas" class="canvas" bindtap="onTap"></canvas></view>
+<view class="card">
+  <view wx:if="{{classData}}" class="header">
+    <view><text class="title">{{classData.name}} 完整分布</text><text class="meta">概率 {{classData.probabilityText}}</text></view>
+    <text class="badge">{{classData.is_predicted ? '预测阳性' : '未检出'}}</text>
+  </view>
+  <view class="legend"><view class="legend-dot key-dot"></view><text>Top 5 关键位点</text><view class="legend-dot muted-dot"></view><text>其他位点</text></view>
+  <canvas type="2d" id="attentionCanvas" class="canvas" bindtap="onTap"></canvas>
+</view>

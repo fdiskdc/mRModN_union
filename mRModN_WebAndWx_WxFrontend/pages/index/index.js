@@ -1,12 +1,11 @@
 const defaultAvatarUrl = 'https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia07jQodd2FJGIYQfG0LAJGFxM4FbnQP6yfMxBgJ0F3YRqJCJ1aPAK2dQagdusBZg/0';
-const { RNA_EXAMPLES } = require('../../utils/rnaExamples');
 const { validateSequence } = require('../../utils/sequence');
 const { ENDPOINTS } = require('../../utils/config/api');
 const { requestWithFallback, requestLogin, resetServer } = require('../../utils/request');
 
 Page({
   data: {
-    isLoggedIn: false, isLogging: false, isSubmitting: false,
+    isLoggedIn: false, isLogging: false, isSubmitting: false, isLoadingExample: false,
     userInfo: { avatarUrl: defaultAvatarUrl, nickname: '' },
     rnaSequences: [{ value: '' }],
     showProgress: false, progressCurrent: 0, progressTotal: 0, batchJobId: '',
@@ -16,7 +15,11 @@ Page({
   onLoad() {
     resetServer(); this.checkLoginStatus();
     const draft = wx.getStorageSync('mrmodnSequenceDraft');
-    this.setData({ rnaSequences: draft && draft.length ? draft : [{ value: RNA_EXAMPLES[Math.floor(Math.random()*RNA_EXAMPLES.length)] }] });
+    if (draft && draft.length) {
+      this.setData({ rnaSequences: draft });
+    } else {
+      this.loadExample({ persist: false, onlyIfEmpty: true });
+    }
   },
   onShow() {
     this.checkLoginStatus();
@@ -45,7 +48,30 @@ Page({
   onSequenceChange(e){const list=this.data.rnaSequences.slice();list[e.detail.index]={value:e.detail.value};this.setData({rnaSequences:list});wx.setStorageSync('mrmodnSequenceDraft',list);},
   onAddSequence(){if(this.data.rnaSequences.length>=5)return;const list=this.data.rnaSequences.concat({value:''});this.setData({rnaSequences:list},()=>wx.pageScrollTo({scrollTop:100000,duration:250}));wx.setStorageSync('mrmodnSequenceDraft',list);},
   onDeleteSequence(e){const list=this.data.rnaSequences.filter((_,index)=>index!==e.detail.index);this.setData({rnaSequences:list});wx.setStorageSync('mrmodnSequenceDraft',list);},
-  useExample(){const list=this.data.rnaSequences.slice();list[0]={value:RNA_EXAMPLES[Math.floor(Math.random()*RNA_EXAMPLES.length)]};this.setData({rnaSequences:list});wx.setStorageSync('mrmodnSequenceDraft',list);},
+  loadExample(options = {}) {
+    if (this.data.isLoadingExample) return Promise.resolve();
+    const persist = options.persist !== false;
+    const onlyIfEmpty = options.onlyIfEmpty === true;
+    this.setData({ isLoadingExample: true });
+    return requestWithFallback(ENDPOINTS.SAMPLE_SEQUENCE, { method: 'GET', timeout: 15000 }).then((res) => {
+      const payload = res.data && res.data.data ? res.data.data : res.data;
+      const sequence = String((payload && payload.sequence) || '').trim().toUpperCase();
+      if (!sequence) throw { message: '后端未返回示例序列' };
+      const hasInput = this.data.rnaSequences.some((item) => item.value && item.value.trim());
+      if (onlyIfEmpty && hasInput) {
+        this.setData({ isLoadingExample: false });
+        return;
+      }
+      const list = this.data.rnaSequences.length ? this.data.rnaSequences.slice() : [{ value: '' }];
+      list[0] = { value: sequence };
+      this.setData({ rnaSequences: list, isLoadingExample: false });
+      if (persist) wx.setStorageSync('mrmodnSequenceDraft', list);
+    }).catch((err) => {
+      this.setData({ isLoadingExample: false });
+      wx.showToast({ title: (err && err.message) || '示例序列加载失败', icon: 'none' });
+    });
+  },
+  useExample() { return this.loadExample(); },
   clearAll(){this.setData({rnaSequences:[{value:''}]});wx.removeStorageSync('mrmodnSequenceDraft');},
   onSubmitTap(){
     if(!this.data.isLoggedIn){wx.showToast({title:'请先登录',icon:'none'});return;}

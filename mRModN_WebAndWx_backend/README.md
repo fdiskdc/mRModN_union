@@ -177,26 +177,26 @@ docker-compose up -d
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| GET | `/mrmodn/api/health` | 健康检查 / Health check |
-| POST | `/mrmodn/api/v1/submit-task` | 提交预测任务 / Submit prediction task |
-| GET | `/mrmodn/api/v1/results/<job_id>` | 获取预测结果 / Get prediction result |
+| GET | `/rgcnformer/api/health` | 健康检查 / Health check |
+| POST | `/rgcnformer/api/v1/submit-task` | 提交预测任务 / Submit prediction task |
+| GET | `/rgcnformer/api/v1/results/<job_id>` | 获取预测结果 / Get prediction result |
 
 ### 微信小程序接口 / WeChat Endpoints
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| POST | `/mrmodn/api/v1/wx/login` | 微信登录 / WeChat login |
-| POST | `/mrmodn/api/v1/wx-submit-task` | 批量提交（最多5条）/ Batch submit (up to 5) |
-| GET | `/mrmodn/api/v1/wx-task-progress/<job_id>` | 查询批量进度 / Query batch progress |
+| POST | `/rgcnformer/api/v1/wx/login` | 微信登录 / WeChat login |
+| POST | `/rgcnformer/api/v1/wx-submit-task` | 批量提交（最多5条）/ Batch submit (up to 5) |
+| GET | `/rgcnformer/api/v1/wx-task-progress/<job_id>` | 查询批量进度 / Query batch progress |
 
 ### 模型可解释性接口 / Explainability Endpoints
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| GET | `/mrmodn/api/v1/model-architecture` | 获取模型架构 / Get model architecture |
-| GET | `/mrmodn/api/v1/model-graph` | 获取计算图 / Get computation graph |
-| POST | `/mrmodn/api/v1/integrated-gradients` | IG 归因分析 / Integrated Gradients |
-| POST | `/mrmodn/api/v1/visualize-gcn-aggregation` | GCN 聚合可视化 / GCN aggregation viz |
+| GET | `/rgcnformer/api/v1/model-architecture` | 获取模型架构 / Get model architecture |
+| GET | `/rgcnformer/api/v1/model-graph` | 获取计算图 / Get computation graph |
+| POST | `/rgcnformer/api/v1/integrated-gradients` | IG 归因分析 / Integrated Gradients |
+| POST | `/rgcnformer/api/v1/visualize-gcn-aggregation` | GCN 聚合可视化 / GCN aggregation viz |
 
 ## 测试
 
@@ -322,7 +322,7 @@ The Web ReID tab uses the CPU-only PyTorch checkpoint at `outputs/best.pt` and
 reads SYSU-MM01 without modifying it. Configure the dataset path with
 `REID_DATA_ROOT` (default: `/home/dc/vscode/re_id/SYSU-MM01`). The API exposes
 metadata, deterministic four-sample RGB/IR batches, and indexed sample images
-under `/mrmodn/api/v1/reid`.
+under `/rgcnformer/api/v1/reid`.
 
 ## License
 

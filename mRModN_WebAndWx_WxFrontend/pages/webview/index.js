@@ -1,11 +1,46 @@
 const { isTrustedWebUrl, buildWebUrl } = require('../../utils/config/api');
+
 Page({
-  data:{url:''},
-  onLoad(options){
-    const jobId=options.jobId&&decodeURIComponent(options.jobId);let url=options.url&&decodeURIComponent(options.url);
-    if(!url&&jobId)url=buildWebUrl(`/embed/results/${encodeURIComponent(jobId)}?tab=gcn`);
-    if(!url||!jobId||!isTrustedWebUrl(url)||url.indexOf(`/embed/results/${encodeURIComponent(jobId)}`)<0){wx.showModal({title:'无法打开',content:'链接不受信任或任务 ID 无效。',showCancel:false,success:()=>wx.navigateBack()});return;}
-    this.setData({url});
+  data: {
+    url: '',
+    loading: true,
+    error: '',
   },
-  onMessage(e){const messages=(e.detail&&e.detail.data)||[];console.log('mRModN WebView message',messages);}
+  onLoad(options) {
+    const jobId = options.jobId && decodeURIComponent(options.jobId);
+    if (!jobId) {
+      this.failAndBack('缺少任务 ID，无法加载 RNA 结构。');
+      return;
+    }
+    const url = buildWebUrl(`/embed/results/${encodeURIComponent(jobId)}?tab=gcn&source=wx`);
+    if (!isTrustedWebUrl(url)) {
+      this.failAndBack('RNA 结构页面地址不受信任，请检查当前 LAN/production 环境配置。');
+      return;
+    }
+    this.setData({ url, loading: true, error: '' });
+  },
+  failAndBack(content) {
+    wx.showModal({
+      title: '无法打开 RNA 结构',
+      content,
+      showCancel: false,
+      success: () => wx.navigateBack(),
+    });
+  },
+  onWebViewLoad() {
+    this.setData({ loading: false, error: '' });
+  },
+  onWebViewError(e) {
+    const message = (e.detail && e.detail.errMsg) || 'WebView 页面加载失败';
+    this.setData({ loading: false, error: message });
+    wx.showModal({
+      title: '3D 页面加载失败',
+      content: `请确认内网 Web 前端 9006 端口已启动，手机可访问该地址；开发者工具调试时还需关闭合法域名校验。\n${message}`,
+      showCancel: false,
+    });
+  },
+  onMessage(e) {
+    const messages = (e.detail && e.detail.data) || [];
+    console.log('mRModN WebView message', messages);
+  },
 });

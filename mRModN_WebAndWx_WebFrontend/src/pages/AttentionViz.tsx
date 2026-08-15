@@ -42,7 +42,7 @@
  *
  * 使用示例 / Usage Example:
  *   <Route path="/attention" element={<AttentionViz />} />
- *   // 浏览器 /mrmodn/attention
+ *   // 浏览器 /rgcnformer/attention
  */
 import React, { useState, useEffect, useMemo } from 'react';
 import { Spin, Alert, InputNumber, Button, Space, Card, Select, Typography } from 'antd';

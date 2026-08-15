@@ -2,7 +2,6 @@
   "navigationBarTitleText": "分析结果",
   "usingComponents": {
     "result-summary": "/components/result-summary/index",
-    "result-tabs": "/components/result-tabs/index",
     "classification-tree": "/components/classification-tree/index",
     "attention-sites": "/components/attention-sites/index",
     "attention-chart": "/components/attention-chart/index",

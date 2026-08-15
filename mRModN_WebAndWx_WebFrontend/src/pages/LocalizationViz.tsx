@@ -37,7 +37,7 @@
  *
  * 使用示例 / Usage Example:
  *   <Route path="/classification" element={<LocalizationViz />} />
- *   // 浏览器 /mrmodn/classification
+ *   // 浏览器 /rgcnformer/classification
  */
 import React, { useRef, useEffect } from 'react';
 import * as echarts from 'echarts';

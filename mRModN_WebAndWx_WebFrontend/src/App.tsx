@@ -37,7 +37,7 @@
  * - 依赖 / Depends on: lib/i18n/LanguageContext.tsx, @tanstack/react-query
  *
  * 使用示例 / Usage Example:
- *   // 访问 /mrmodn/classification
+ *   // 访问 /rgcnformer/classification
  *   // → 匹配 <Route path="/classification" element={<ClassificationViz />}>
  *   // → 父级 <Route element={<VizLayout />}> 渲染 Sider+Content
  *   // → <Outlet /> 处挂载 ClassificationViz

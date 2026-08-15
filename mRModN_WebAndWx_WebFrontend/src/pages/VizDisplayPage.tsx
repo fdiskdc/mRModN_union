@@ -38,7 +38,7 @@
  * 使用示例 / Usage Example:
  *   // WorkspacePage.tsx 内
  *   navigate('/viz-display', { state: { vizBlocks, sequenceBlocks, modelBlocks } });
- *   // 浏览器 /mrmodn/viz-display
+ *   // 浏览器 /rgcnformer/viz-display
  */
 
 import React, { useEffect } from 'react';

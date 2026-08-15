@@ -60,7 +60,7 @@ def get_reid_batch(batch_index: int):
         result = heatmap_service.generate_batch(split, batch_index)
         for sample in result["samples"]:
             sample["imageUrl"] = (
-                f"/mrmodn/api/v1/reid/samples/{sample['sampleId']}/image"
+                f"/rgcnformer/api/v1/reid/samples/{sample['sampleId']}/image"
             )
         return jsonify(result)
     except (KeyError, IndexError, ValueError) as exc:

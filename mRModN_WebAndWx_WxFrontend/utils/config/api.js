@@ -8,17 +8,16 @@ const ENVIRONMENTS = {
     apiPrefix: '/api/v1',
     // 内网 Web 前端用于小程序 WebView 高级可视化。
     webOrigin: 'http://100.74.161.109:9006',
-    webBasePath: '/mrmodn'
+    webBasePath: '/rgcnformer'
   },
   production: {
     apiOrigins: [
-      'https://cmb.bnu.edu.cn',
-      'https://rgcnformer.dawdawdawdawfafaawf.xyz'
+      'https://cmb.bnu.edu.cn'
     ],
-    appBasePath: '/mrmodn',
+    appBasePath: '/rgcnformer',
     apiPrefix: '/api/v1',
     webOrigin: 'https://cmb.bnu.edu.cn',
-    webBasePath: '/mrmodn'
+    webBasePath: '/rgcnformer'
   }
 };
 
@@ -60,6 +59,7 @@ function isTrustedWebUrl(url) {
 }
 
 const ENDPOINTS = {
+  SAMPLE_SEQUENCE: '/sample-sequence',
   WX_LOGIN: '/wx/login',
   WX_SUBMIT_TASK: '/wx-submit-task',
   WX_TASK_PROGRESS: (batchJobId) => `/wx-task-progress/${encodeURIComponent(batchJobId)}`,

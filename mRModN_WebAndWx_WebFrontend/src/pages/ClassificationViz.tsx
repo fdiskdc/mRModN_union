@@ -38,7 +38,7 @@
  *
  * 使用示例 / Usage Example:
  *   <Route path="/classification" element={<ClassificationViz />} />
- *   // 浏览器 /mrmodn/classification
+ *   // 浏览器 /rgcnformer/classification
  */
 import React, { useState, useEffect } from 'react';
 import ReactECharts from 'echarts-for-react';

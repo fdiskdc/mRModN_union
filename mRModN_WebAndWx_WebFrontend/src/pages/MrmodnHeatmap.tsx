@@ -16,7 +16,7 @@
  * - 加载/错误态 / Loading/error states
  *
  * 输入 / Inputs:
- * - 后端 /api/v1/mrmodn-heatmap 返回 MrmodnHeatmapData
+ * - 后端 /api/v1/rgcnformer-classification-heatmap 返回 MrmodnHeatmapData
  *
  * 输出 / Outputs:
  * - JSX.Element 热力图 / Heatmap JSX

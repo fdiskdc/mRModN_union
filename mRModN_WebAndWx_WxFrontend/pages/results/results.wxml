@@ -4,9 +4,8 @@
   <block wx:elif="{{currentResult}}">
     <view class="topbar"><view><text class="title">分析结果</text><text class="task-id">批次 {{batchJobId}}</text></view><text class="back" bindtap="backHome">返回</text></view>
     <scroll-view wx:if="{{results.length > 1}}" scroll-x class="sequence-tabs"><view class="sequence-row"><view wx:for="{{results}}" wx:key="jobId" class="sequence-tab {{currentResultIndex === index ? 'active' : ''}}" data-index="{{index}}" bindtap="onSequenceTab"><text>序列 {{index + 1}}</text><text>{{item.sequenceLength}} nt</text></view></view></scroll-view>
-    <result-tabs value="{{currentResultTab}}" tabs="{{resultTabs}}" bindchange="onResultTab"></result-tabs>
     <view class="content">
-      <result-summary wx:if="{{currentResultTab === 'overview'}}" result="{{currentResult}}" bindopen="onSummaryOpen"></result-summary>
+      <result-summary wx:if="{{currentResultTab === 'overview'}}" result="{{currentResult}}"></result-summary>
       <classification-tree wx:elif="{{currentResultTab === 'classification'}}" classification="{{currentResult.classification}}"></classification-tree>
       <view wx:elif="{{currentResultTab === 'attention'}}">
         <view class="subtabs"><view class="{{attentionMode === 'sites' ? 'active' : ''}}" data-mode="sites" bindtap="setAttentionMode">关键位点</view><view class="{{attentionMode === 'distribution' ? 'active' : ''}}" data-mode="distribution" bindtap="setAttentionMode">完整分布</view></view>
@@ -21,6 +20,12 @@
       <view wx:elif="{{currentResultTab === 'structure'}}">
         <view class="structure-head"><view><text class="section-title">RNA 二级结构</text><text class="section-desc">注意力 Top 位点已在图中高亮</text></view><button bindtap="openWebView">交互式 3D</button></view>
         <rna-graph graph="{{currentResult.gcn}}" sequence="{{currentResult.sequence}}" highlighted-indices="{{currentResult.highlightedIndices}}" selected-index="{{selectedPosition}}" bindselect="onGraphSelect"></rna-graph>
+      </view>
+    </view>
+    <view class="result-bottom-nav safe-bottom">
+      <view wx:for="{{resultTabs}}" wx:key="value" class="bottom-nav-item {{currentResultTab === item.value ? 'active' : ''}}" data-value="{{item.value}}" bindtap="onResultTabTap">
+        <text class="bottom-nav-icon">{{item.icon}}</text>
+        <text class="bottom-nav-label">{{item.label}}</text>
       </view>
     </view>
   </block>

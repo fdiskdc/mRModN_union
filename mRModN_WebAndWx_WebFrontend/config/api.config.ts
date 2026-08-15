@@ -47,7 +47,7 @@
 
 // ==================== Base URL Configuration ====================
 
-export const DEFAULT_APP_BASE_PATH = '/mrmodn';
+export const DEFAULT_APP_BASE_PATH = '/rgcnformer';
 export const APP_BASE_PATH = ((typeof import.meta !== 'undefined' && import.meta.env?.VITE_APP_BASE_PATH) ?? DEFAULT_APP_BASE_PATH).replace(/\/$/, '');
 export const DEFAULT_BASE_URL = `${APP_BASE_PATH}/api/v1`;
 export const BASE_URL = ((typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL) ?? DEFAULT_BASE_URL).replace(/\/$/, '');

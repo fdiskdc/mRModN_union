@@ -29,7 +29,7 @@
  *
  * 使用示例 / Usage Example:
  *   <Route path="/legacy" element={<MainPage />} />
- *   // 浏览器 /mrmodn/legacy
+ *   // 浏览器 /rgcnformer/legacy
  */
 /*
  * @Author: Chao Deng && chaodeng987@outlook.com

@@ -37,7 +37,7 @@
  *
  * 使用示例 / Usage Example:
  *   <Route path="/model-viz" element={<ModelViz />} />
- *   // 浏览器 /mrmodn/model-viz
+ *   // 浏览器 /rgcnformer/model-viz
  */
 import React, { useState, useEffect, useCallback } from 'react';
 import ReactFlow, {

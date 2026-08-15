@@ -40,7 +40,7 @@
  *
  * 使用示例 / Usage Example:
  *   <Route path="/integrated-gradients" element={<IntegratedGradientsViz />} />
- *   // 浏览器 /mrmodn/integrated-gradients
+ *   // 浏览器 /rgcnformer/integrated-gradients
  */
 import React, { useState, useEffect, useRef } from 'react';
 import ForceGraph3D from 'react-force-graph-3d';

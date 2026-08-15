@@ -18,20 +18,20 @@
 /**
  * vite.config.ts - Vite 构建配置 / Vite build config
  *
- * Vite 配置:基础路径 `/mrmodn/`、React 插件、dev server 代理
- * `/mrmodn/api` → 后端 `/api`（由环境变量控制）。 / Vite config:
- * base `/mrmodn/`, React plugin, and a development proxy that rewrites
- * `/mrmodn/api` to the Flask backend `/api` path.
+ * Vite 配置:基础路径 `/rgcnformer/`、React 插件、dev server 代理
+ * `/rgcnformer/api` → 后端 `/api`（由环境变量控制）。 / Vite config:
+ * base `/rgcnformer/`, React plugin, and a development proxy that rewrites
+ * `/rgcnformer/api` to the Flask backend `/api` path.
  *
  * 功能模块 / Modules:
  * - defineConfig(mode): Vite 配置工厂 / Vite config factory
  * - loadEnv: 加载 .env 模式环境变量 / Load .env mode env vars
  * - plugins: [react()]: React 插件 / React plugin
- * - server.proxy: /mrmodn/api 代理并重写到后端 / Proxy and rewrite to backend
+ * - server.proxy: /rgcnformer/api 代理并重写到后端 / Proxy and rewrite to backend
  *
  * 输入 / Inputs:
  * - VITE_PROXY_TARGET: 后端地址(默认 http://localhost:9005)/ Backend URL
- * - VITE_APP_BASE_PATH: Web 子路径（默认 /mrmodn）/ Web subpath
+ * - VITE_APP_BASE_PATH: Web 子路径（默认 /rgcnformer）/ Web subpath
  * - loadEnv 加载所有 VITE_* 环境变量 / All VITE_* env vars
  *
  * 输出 / Outputs:
@@ -39,8 +39,8 @@
  *
  * 数据流 / Data Flow:
  * 1. Vite 启动 → loadEnv → 决定 proxyTarget / Vite reads env, sets proxyTarget
- * 2. dev: 访问 /mrmodn/api/... → 重写并代理到 backend/api/...
- * 3. build: 静态资源 base 为 /mrmodn/ / Build assets under /mrmodn/
+ * 2. dev: 访问 /rgcnformer/api/... → 重写并代理到 backend/api/...
+ * 3. build: 静态资源 base 为 /rgcnformer/ / Build assets under /rgcnformer/
  *
  * 相关文件 / Related Files:
  * - 调用 / Calls: vite、@vitejs/plugin-react
@@ -62,7 +62,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
 
   const proxyTarget = env.VITE_PROXY_TARGET || 'http://localhost:9005'
-  const appBasePath = (env.VITE_APP_BASE_PATH || '/mrmodn').replace(/\/$/, '')
+  const appBasePath = (env.VITE_APP_BASE_PATH || '/rgcnformer').replace(/\/$/, '')
 
   return {
     base: `${appBasePath}/`,
@@ -71,7 +71,7 @@ export default defineConfig(({ mode }) => {
       host: '0.0.0.0',  // 👈 添加这一行，监听所有网络接口
       port: 9006,
       proxy: {
-        // 将 /mrmodn/api/* 重写为后端内部 /api/*
+        // 将 /rgcnformer/api/* 重写为后端内部 /api/*
         [`${appBasePath}/api`]: {
           target: proxyTarget,
           changeOrigin: true,

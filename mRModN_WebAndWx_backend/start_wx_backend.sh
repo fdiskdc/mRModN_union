@@ -13,6 +13,15 @@
 CONDA_ENV_NAME="base"        # Change to your conda environment name
 CONDA_BASE_PATH="$HOME/miniconda3"  # Conda installation path
 
+# ============================================================================
+# WeChat Mini Program Configuration
+# ============================================================================
+# Fill in the AppID and AppSecret from the WeChat Mini Program console.
+WX_APPID="wxcb604a93d537d38a"
+WX_SECRET="73e7bea0faafabef192ab5310688f0a2"
+export WX_APPID
+export WX_SECRET
+
 # Activate conda environment
 source "$CONDA_BASE_PATH/etc/profile.d/conda.sh"
 conda activate "$CONDA_ENV_NAME"
@@ -33,7 +42,7 @@ echo "✓ Conda environment activated: $CONDA_ENV_NAME"
 # ============================================================================
 # LAN default: 0.0.0.0:9005
 # Production behind the immutable Nginx config:
-#   HOST=127.0.0.1 PORT=8000 ./start_backend.sh
+#   HOST=127.0.0.1 PORT=8000 ./start_wx_backend.sh
 HOST="${HOST:-0.0.0.0}"
 PORT="${PORT:-9005}"
 

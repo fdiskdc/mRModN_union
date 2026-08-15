@@ -2,14 +2,14 @@ server {
     listen 443 ssl http2;
     server_name cmb.bnu.edu.cn;
 
-    # Upload the Vite dist output to /var/www/mrmodn. Keeping root at
-    # /var/www makes a request for /mrmodn/assets/* resolve correctly.
+    # Upload the Vite dist output to /var/www/rgcnformer. Keeping root at
+    # /var/www makes a request for /rgcnformer/assets/* resolve correctly.
     root /var/www;
     index index.html;
 
-    # Public /mrmodn/api/v1/* -> Flask internal /api/v1/*.
-    location ^~ /mrmodn/api/ {
-        rewrite ^/mrmodn(/api/.*)$ $1 break;
+    # Public /rgcnformer/api/v1/* -> Flask internal /api/v1/*.
+    location ^~ /rgcnformer/api/ {
+        rewrite ^/rgcnformer(/api/.*)$ $1 break;
         proxy_pass http://127.0.0.1:9005;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
@@ -19,7 +19,7 @@ server {
     }
 
     # BrowserRouter refresh fallback under the same Vite base path.
-    location /mrmodn/ {
-        try_files $uri $uri/ /mrmodn/index.html;
+    location /rgcnformer/ {
+        try_files $uri $uri/ /rgcnformer/index.html;
     }
 }
