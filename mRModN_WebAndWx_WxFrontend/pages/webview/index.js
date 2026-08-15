@@ -1,33 +1,11 @@
-// webview/index.js
+const { isTrustedWebUrl, buildWebUrl } = require('../../utils/config/api');
 Page({
-  data: {
-    url: '',
+  data:{url:''},
+  onLoad(options){
+    const jobId=options.jobId&&decodeURIComponent(options.jobId);let url=options.url&&decodeURIComponent(options.url);
+    if(!url&&jobId)url=buildWebUrl(`/embed/results/${encodeURIComponent(jobId)}?tab=gcn`);
+    if(!url||!jobId||!isTrustedWebUrl(url)||url.indexOf(`/embed/results/${encodeURIComponent(jobId)}`)<0){wx.showModal({title:'无法打开',content:'链接不受信任或任务 ID 无效。',showCancel:false,success:()=>wx.navigateBack()});return;}
+    this.setData({url});
   },
-
-  /**
-   * 生命周期函数--监听页面加载
-   */
-  onLoad(options) {
-    const { url } = options;
-    if (url) {
-      this.setData({
-        url: decodeURIComponent(url),
-      });
-    } else {
-      wx.showToast({
-        title: '缺少URL参数',
-        icon: 'none',
-      });
-      setTimeout(() => {
-        wx.navigateBack();
-      }, 1500);
-    }
-  },
-
-  /**
-   * 接收webview传递的消息
-   */
-  onMessage(e) {
-    console.log('收到webview消息:', e.detail.data);
-  },
+  onMessage(e){const messages=(e.detail&&e.detail.data)||[];console.log('mRModN WebView message',messages);}
 });

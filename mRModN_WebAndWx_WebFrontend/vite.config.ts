@@ -18,20 +18,20 @@
 /**
  * vite.config.ts - Vite 构建配置 / Vite build config
  *
- * Vite 配置:基础路径 `/`、React 插件、dev server 代理
- * `/api` → 后端 `http://localhost:8000/api`(由环境变量
- * VITE_PROXY_TARGET 控制)。 / Vite config: base `/`, React plugin,
- * dev server proxies `/api` to backend `http://localhost:8000/api`
- * (controlled by VITE_PROXY_TARGET env var).
+ * Vite 配置:基础路径 `/mrmodn/`、React 插件、dev server 代理
+ * `/mrmodn/api` → 后端 `/api`（由环境变量控制）。 / Vite config:
+ * base `/mrmodn/`, React plugin, and a development proxy that rewrites
+ * `/mrmodn/api` to the Flask backend `/api` path.
  *
  * 功能模块 / Modules:
  * - defineConfig(mode): Vite 配置工厂 / Vite config factory
  * - loadEnv: 加载 .env 模式环境变量 / Load .env mode env vars
  * - plugins: [react()]: React 插件 / React plugin
- * - server.proxy: /api 代理到后端 / Proxy to backend
+ * - server.proxy: /mrmodn/api 代理并重写到后端 / Proxy and rewrite to backend
  *
  * 输入 / Inputs:
- * - VITE_PROXY_TARGET: 后端地址(默认 http://localhost:8000)/ Backend URL
+ * - VITE_PROXY_TARGET: 后端地址(默认 http://localhost:9005)/ Backend URL
+ * - VITE_APP_BASE_PATH: Web 子路径（默认 /mrmodn）/ Web subpath
  * - loadEnv 加载所有 VITE_* 环境变量 / All VITE_* env vars
  *
  * 输出 / Outputs:
@@ -39,15 +39,15 @@
  *
  * 数据流 / Data Flow:
  * 1. Vite 启动 → loadEnv → 决定 proxyTarget / Vite reads env, sets proxyTarget
- * 2. dev: 访问 /api/... → 代理到 backend/api/... / Dev: proxy to backend
- * 3. build: 静态资源 base 为 / / Build: assets base /
+ * 2. dev: 访问 /mrmodn/api/... → 重写并代理到 backend/api/...
+ * 3. build: 静态资源 base 为 /mrmodn/ / Build assets under /mrmodn/
  *
  * 相关文件 / Related Files:
  * - 调用 / Calls: vite、@vitejs/plugin-react
  * - 被调用 / Called by: `npm run dev` / `npm run build`
  *
  * 使用示例 / Usage Example:
- *     # 默认代理 localhost:8000
+ *     # 默认代理 localhost:9005
  *     VITE_PROXY_TARGET=http://api.example.com npm run dev
  *
  * 作者 / Author: Chao Deng (chaodeng987@outlook.com)
@@ -62,20 +62,20 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
 
   const proxyTarget = env.VITE_PROXY_TARGET || 'http://localhost:9005'
+  const appBasePath = (env.VITE_APP_BASE_PATH || '/mrmodn').replace(/\/$/, '')
 
   return {
-    // 生产环境直接部署到 1Panel 网站根目录。
-    base: '/',
+    base: `${appBasePath}/`,
     plugins: [react()],
     server: {
       host: '0.0.0.0',  // 👈 添加这一行，监听所有网络接口
       port: 9006,
       proxy: {
-        // 将所有 /api 开头的请求代理到后端，并保留原始路径
-        '/mrmodn/api': {
+        // 将 /mrmodn/api/* 重写为后端内部 /api/*
+        [`${appBasePath}/api`]: {
           target: proxyTarget,
           changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/mrmodn/, ''),
+          rewrite: (path) => path.replace(new RegExp(`^${appBasePath}`), ''),
         },
       },
     },

@@ -1,65 +1,10 @@
-<!--index.wxml-->
-<view class="container">
-  <!-- 用户登录区域 - 右上角 -->
-  <view class="user-area">
-    <block wx:if="{{isLoggedIn}}">
-      <view class="user-info" bindtap="onLogoutTap">
-        <text class="user-nickname">{{userInfo.nickname || '未设置昵称'}}</text>
-        <image class="user-avatar" src="{{userInfo.avatarUrl || 'https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia07jQodd2FJGIYQfG0LAJGFxM4FbnQP6yfMxBgJ0F3YRqJCJ1aPAK2dQagdusBZg/0'}}" mode="aspectFill" alt="{{userInfo.nickname + '的头像'}}"></image>
-      </view>
-    </block>
-    <block wx:else>
-      <button class="login-btn" bindtap="onLoginTap">点击登录</button>
-    </block>
-  </view>
-
-  <!-- 进度条弹窗 -->
-  <view class="progress-modal" wx:if="{{showProgress}}">
-    <view class="progress-content">
-      <view class="progress-spinner"></view>
-      <text class="progress-text">Processing... {{progressCurrent}}/{{progressTotal}}</text>
-      <text class="progress-subtext">正在生成可视化，请稍候...</text>
-    </view>
-  </view>
-
-  <!-- 序列输入区域 - 页面中心 -->
-  <view class="input-area">
-    <view class="input-title">
-      <text class="title-cn">请输入序列</text>
-      <text class="title-en">Please input RNA sequence</text>
-    </view>
-    <!-- 循环渲染多个序列输入框 -->
-    <view class="sequence-list">
-      <view class="sequence-item" wx:for="{{rnaSequences}}" wx:key="index">
-        <view class="sequence-header">
-          <text class="sequence-label">序列 {{index + 1}}</text>
-          <text class="sequence-delete" wx:if="{{rnaSequences.length > 1}}" bindtap="onDeleteSequence" data-index="{{index}}">删除</text>
-        </view>
-        <textarea
-          class="sequence-input {{focusedIndex === index ? 'focused' : 'normal'}}"
-          placeholder="请在此处粘贴RNA序列（至少51个字符，仅限A/T/C/G/U/N）"
-          value="{{item.value}}"
-          data-index="{{index}}"
-          bindinput="onSequenceInput"
-          bindfocus="onSequenceFocus"
-          bindblur="onSequenceBlur"
-          maxlength="-1"
-        ></textarea>
-        <view class="input-counter">
-          <text class="counter-cn">序列长度：{{item.value.length}}</text>
-          <text class="counter-en">RNA Length: {{item.value.length}}</text>
-        </view>
-      </view>
-    </view>
-    <!-- 添加序列按钮 -->
-    <view class="add-sequence-btn" wx:if="{{rnaSequences.length < 5}}" bindtap="onAddSequence">
-      <text class="add-icon">+</text>
-      <text class="add-text">添加序列（最多5条）</text>
-    </view>
-  </view>
-
-  <!-- 提交按钮区域 -->
-  <view class="submit-area">
-    <button class="submit-btn" type="primary" bindtap="onSubmitTap">生成可视化</button>
-  </view>
+<view class="page-shell home-page">
+  <app-header isLoggedIn="{{isLoggedIn}}" isLogging="{{isLogging}}" userInfo="{{userInfo}}" bindlogin="onLoginTap" bindlogout="onLogoutTap"></app-header>
+  <view class="hero"><text class="eyebrow">移动端科研分析工具</text><text class="hero-title">RNA 修饰识别与结构可视化</text><text class="hero-desc">一次提交即可获得 12 类修饰预测、注意力位点和 RNA 二级结构。</text><view class="chips"><text>12 类修饰</text><text>最多 5 条序列</text><text>2D / 3D 结构</text></view></view>
+  <view class="section-head"><view><text class="section-title">输入 RNA 序列</text><text class="section-note">至少 51 nt，仅支持 A/C/G/U/T/N</text></view><view class="tools"><text bindtap="useExample">换示例</text><text bindtap="clearAll">清空</text></view></view>
+  <view class="sequence-list"><sequence-card wx:for="{{rnaSequences}}" wx:key="index" index="{{index}}" value="{{item.value}}" removable="{{rnaSequences.length > 1}}" bindchange="onSequenceChange" bindremove="onDeleteSequence"></sequence-card></view>
+  <button wx:if="{{rnaSequences.length < 5}}" class="add-button" bindtap="onAddSequence">＋ 添加序列（{{rnaSequences.length}} / 5）</button>
+  <view class="capability"><text class="cap-title">分析结果包含</text><view class="cap-grid"><view><b>01</b><text>修饰分类</text></view><view><b>02</b><text>注意力分布</text></view><view><b>03</b><text>RNA 结构图</text></view></view></view>
 </view>
+<view class="bottom-action safe-bottom"><button class="primary-button" loading="{{isSubmitting}}" disabled="{{isSubmitting}}" bindtap="onSubmitTap">{{isSubmitting ? '正在提交…' : '开始分析'}}</button></view>
+<analysis-progress visible="{{showProgress}}" current="{{progressCurrent}}" total="{{progressTotal}}"></analysis-progress>

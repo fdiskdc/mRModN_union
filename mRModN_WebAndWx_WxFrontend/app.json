@@ -1,14 +1,11 @@
 {
-  "pages": [
-    "pages/index/index",
-    "pages/results/results",
-    "pages/webview/index",
-    "pages/logs/logs"
-  ],
+  "pages": ["pages/index/index", "pages/results/results", "pages/webview/index"],
   "window": {
-    "navigationBarTextStyle": "black",
-    "navigationBarTitleText": "RNA Sequence Analysis",
-    "navigationBarBackgroundColor": "#ffffff"
+    "navigationBarTextStyle": "white",
+    "navigationBarTitleText": "mRModN RNA 分析",
+    "navigationBarBackgroundColor": "#5267D8",
+    "backgroundColor": "#F5F7FB",
+    "backgroundTextStyle": "dark"
   },
   "style": "v2",
   "componentFramework": "glass-easel",

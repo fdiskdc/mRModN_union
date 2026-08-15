@@ -1,194 +1,27 @@
-<view class="container">
-  <!-- Loading State -->
-  <view wx:if="{{isLoading}}" class="loading-container">
-    <view class="loading-spinner"></view>
-    <text class="loading-text">Calculating results...</text>
-    <text class="loading-subtext">Please wait ({{pollAttempts}} attempts)</text>
-  </view>
-
-  <!-- Error State -->
-  <view wx:if="{{!isLoading && error}}" class="error-container">
-    <text class="error-icon">⚠️</text>
-    <text class="error-text">{{error}}</text>
-    <button class="back-button" bindtap="onBackTap">Back</button>
-  </view>
-
-  <!-- Results Display -->
-  <view wx:if="{{!isLoading && resultDataList.length > 0}}" class="results-wrapper">
-    <view class="header">
-      <text class="title">Analysis Results</text>
-      <text class="sequence-info" wx:if="{{resultDataList.length > 1}}">Sequence {{currentResultData.index + 1}} / {{resultDataList.length}}</text>
-    </view>
-
-    <!-- Classification Results -->
-    <view class="section" wx:if="{{currentResultData.data.classification}}">
-      <view class="section-title">Classification Results</view>
-      <view class="hierarchy-tree">
-        <!-- Nucleotide Groups with their Modifications -->
-        <view class="nucleotide-group" wx:for="{{classificationTree.children}}" wx:key="nucType">
-          <!-- Nucleotide Header -->
-          <view class="tree-node nucleotide-node {{item.isPredicted ? 'predicted' : ''}}" data-nuc="{{item.nucType}}">
-            <view class="node-indicator"></view>
-            <text class="node-text">{{item.name}}</text>
-          </view>
-
-          <!-- Modifications under this Nucleotide -->
-          <view class="modifications-list">
-            <view class="tree-node modification-node {{mod.isPredicted ? 'predicted' : ''}}"
-                  wx:for="{{item.children}}"
-                  wx:key="name"
-                  wx:for-item="mod">
-              <view class="node-connector"></view>
-              <view class="node-indicator"></view>
-              <text class="node-text">{{mod.name}}</text>
-              <text class="node-status">{{mod.isPredicted ? '✓' : ''}}</text>
-            </view>
-          </view>
+<view class="page-shell results-page">
+  <view wx:if="{{isLoading}}" class="loading"><view class="spinner"></view><text>正在加载分析结果…</text></view>
+  <error-state wx:elif="{{error}}" message="{{error}}" bindretry="retry"></error-state>
+  <block wx:elif="{{currentResult}}">
+    <view class="topbar"><view><text class="title">分析结果</text><text class="task-id">批次 {{batchJobId}}</text></view><text class="back" bindtap="backHome">返回</text></view>
+    <scroll-view wx:if="{{results.length > 1}}" scroll-x class="sequence-tabs"><view class="sequence-row"><view wx:for="{{results}}" wx:key="jobId" class="sequence-tab {{currentResultIndex === index ? 'active' : ''}}" data-index="{{index}}" bindtap="onSequenceTab"><text>序列 {{index + 1}}</text><text>{{item.sequenceLength}} nt</text></view></view></scroll-view>
+    <result-tabs value="{{currentResultTab}}" tabs="{{resultTabs}}" bindchange="onResultTab"></result-tabs>
+    <view class="content">
+      <result-summary wx:if="{{currentResultTab === 'overview'}}" result="{{currentResult}}" bindopen="onSummaryOpen"></result-summary>
+      <classification-tree wx:elif="{{currentResultTab === 'classification'}}" classification="{{currentResult.classification}}"></classification-tree>
+      <view wx:elif="{{currentResultTab === 'attention'}}">
+        <view class="subtabs"><view class="{{attentionMode === 'sites' ? 'active' : ''}}" data-mode="sites" bindtap="setAttentionMode">关键位点</view><view class="{{attentionMode === 'distribution' ? 'active' : ''}}" data-mode="distribution" bindtap="setAttentionMode">完整分布</view></view>
+        <attention-sites wx:if="{{attentionMode === 'sites'}}" sequence="{{currentResult.sequence}}" weights="{{currentResult.attentionWeights}}" modification-names="{{currentResult.modificationNames}}" bindselectsite="onAttentionSite"></attention-sites>
+        <view wx:else class="distribution-panel">
+          <view class="distribution-controls"><picker mode="selector" range="{{attentionClasses}}" range-key="name" value="{{attentionClassIndex}}" bindchange="onAttentionClass"><view class="class-picker">{{selectedAttentionClass ? selectedAttentionClass.name : '选择修饰类别'}}⌄</view></picker><view class="all-switch"><switch checked="{{!predictedOnly}}" color="#5267D8" bindchange="toggleAllClasses"></switch><text>全部类别</text></view></view>
+          <view wx:if="{{loadingAttention}}" class="inline-loading">正在读取缓存数据…</view>
+          <attention-chart wx:elif="{{selectedAttentionClass}}" class-data="{{selectedAttentionClass}}" sequence-length="{{attentionDistribution.sequence_length}}" modeled-start="{{attentionDistribution.modeled_range.start}}" selected-position="{{selectedPosition}}" bindselect="onChartSelect"></attention-chart>
+          <empty-state wx:else title="暂无完整注意力数据" description="旧任务可能没有缓存，可重新提交任务生成。"></empty-state>
         </view>
+      </view>
+      <view wx:elif="{{currentResultTab === 'structure'}}">
+        <view class="structure-head"><view><text class="section-title">RNA 二级结构</text><text class="section-desc">注意力 Top 位点已在图中高亮</text></view><button bindtap="openWebView">交互式 3D</button></view>
+        <rna-graph graph="{{currentResult.gcn}}" sequence="{{currentResult.sequence}}" highlighted-indices="{{currentResult.highlightedIndices}}" selected-index="{{selectedPosition}}" bindselect="onGraphSelect"></rna-graph>
       </view>
     </view>
-
-    <!-- Attention Results -->
-    <view class="section" wx:if="{{currentResultData.data.attention}}">
-      <view class="section-title">Attention Weights</view>
-
-      <!-- No modification detected message -->
-      <view class="no-data" wx:if="{{modificationTypeOptions.length === 0}}">
-        <text>No modifications detected, unable to display attention weights</text>
-      </view>
-
-      <view wx:else>
-        <!-- Control area -->
-        <view class="attention-controls">
-          <!-- Modification type selection -->
-          <view class="control-row">
-            <text class="control-label">Select Modification Type:</text>
-            <picker class="modification-picker" mode="selector" range="{{modificationTypeOptions}}"
-                    range-key="label" value="{{selectedModificationIndex}}" bindchange="onModificationTypeChange">
-              <view class="picker-display">
-                {{modificationTypeOptions[selectedModificationIndex] ? modificationTypeOptions[selectedModificationIndex].label : 'Please Select'}}
-              </view>
-            </picker>
-          </view>
-
-          <!-- TopX control -->
-          <view class="control-row">
-            <text class="control-label">Show Top </text>
-            <input class="topx-input" type="number" value="{{topX}}" bindinput="onTopXInput" min="1" max="100" />
-            <text class="control-label"> Sites</text>
-          </view>
-
-          <!-- Navigation buttons -->
-          <view class="nav-buttons-container">
-            <button class="nav-btn" bindtap="onPrevSite" disabled="{{currentAttentionIndex === 0}}">
-              ← Previous
-            </button>
-            <text class="nav-info">
-              {{displayWeights.length > 0 ? currentAttentionIndex + 1 : 0}} / {{displayWeights.length}}
-            </text>
-            <button class="nav-btn" bindtap="onNextSite"
-                    disabled="{{currentAttentionIndex >= displayWeights.length - 1}}">
-              Next →
-            </button>
-          </view>
-        </view>
-
-        <!-- No data message -->
-        <view class="no-data" wx:if="{{displayWeights.length === 0}}">
-          <text>No matching sites under current filter conditions</text>
-        </view>
-
-        <!-- Sequence view -->
-        <view wx:else class="attention-viz-container" id="attention-viz-section">
-          <!-- Current highlight info -->
-          <view class="highlight-info" wx:if="{{currentHighlight}}">
-            <text class="highlight-label">Current Highlight:</text>
-            <text class="highlight-value">
-              {{currentHighlight.type}} (Score: {{currentHighlight.displayScore}}},
-              Position: {{currentHighlight.index}})
-            </text>
-          </view>
-
-          <!-- Sequence viewport -->
-          <scroll-view class="sequence-viewport" scroll-x="true" scroll-into-view="{{scrollToId}}" scroll-with-animation="{{true}}" id="sequence-viewport">
-            <view class="viewport-content">
-              <view id="block-{{item.index}}" class="sequence-block {{item.isHighlighted ? 'highlighted' : ''}}"
-                    wx:for="{{viewportElements}}">
-                <view wx:if="{{item.isHighlighted}}" class="annotation-label">
-                  {{currentHighlight.type}} ({{currentHighlight.displayScore}})
-                </view>
-                <view class="base-block" style="background-color: {{item.bgColor}};">
-                  {{item.base}}
-                </view>
-              </view>
-            </view>
-          </scroll-view>
-
-          <!-- Statistics -->
-          <view class="attention-stats">
-            <view class="stat-item">
-              <text class="stat-label">Sequence Length:</text>
-              <text class="stat-value">{{sequence.length}}</text>
-            </view>
-            <view class="stat-item">
-              <text class="stat-label">Total Weight Data:</text>
-              <text class="stat-value">{{currentResultData.data.attention.weights.length}}</text>
-            </view>
-            <view class="stat-item">
-              <text class="stat-label">Currently Displayed:</text>
-              <text class="stat-value">{{displayWeights.length}}</text>
-            </view>
-          </view>
-
-          <!-- Sites list -->
-          <view class="sites-list">
-            <view class="site-list-header">List of Currently Displayed Modification Sites:</view>
-            <view class="site-list-item" wx:for="{{displayWeights}}" wx:for-index="idx">
-              <text class="site-rank">{{idx + 1}}.</text>
-              <text class="site-type">{{item.type}}</text>
-              <text class="site-position">Position: {{item.index}}</text>
-              <text class="site-score">Score: {{item.displayScore}}</text>
-            </view>
-          </view>
-        </view>
-      </view>
-    </view>
-
-    <!-- GCN Results -->
-    <view class="section" wx:if="{{currentResultData.data.gcn}}">
-      <view class="section-title">GCN Graph Structure</view>
-      <view class="gcn-stats">
-        <view class="stat-item">
-          <text class="stat-label">Nodes:</text>
-          <text class="stat-value">{{currentResultData.data.gcn.nodes.length}}</text>
-        </view>
-        <view class="stat-item">
-          <text class="stat-label">Edges:</text>
-          <text class="stat-value">{{currentResultData.data.gcn.edges.length}}</text>
-        </view>
-      </view>
-    </view>
-
-    <!-- Back Button -->
-    <!-- <view class="button-container">
-      <button class="back-button" bindtap="onBackTap">Back</button>
-    </view> -->
-  </view>
-
-  <!-- Tab switching area - Fixed at bottom -->
-  <view class="tab-bar-container" wx:if="{{resultDataList.length > 0}}">
-    <scroll-view class="tab-scroll" scroll-x="true" scroll-with-animation="{{true}}">
-      <view class="tab-list">
-        <view
-          class="tab-item {{currentTabIndex === index ? 'active' : ''}}"
-          wx:for="{{resultDataList}}"
-          wx:key="index"
-          bindtap="onTabTap"
-          data-index="{{index}}">
-          <text class="tab-text">Sequence {{item.index + 1}}</text>
-          <view class="tab-indicator" wx:if="{{currentTabIndex === index}}"></view>
-        </view>
-      </view>
-    </scroll-view>
-  </view>
+  </block>
 </view>

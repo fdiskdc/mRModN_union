@@ -40,7 +40,7 @@
  *   // 浏览器访问 http://host:5173/mrmodn/gcn
  */
 import React, { useState, useEffect, useRef } from 'react';
-import ForceGraph3D from 'react-force-graph-3d';
+import ForceGraph3D, { type ForceGraphMethods } from 'react-force-graph-3d';
 import { Spin, Alert, Card, Typography } from 'antd';
 import { Link } from 'react-router-dom';
 import { useRna } from '../context/RnaContext';
@@ -57,17 +57,22 @@ interface Node {
   x?: number;
   y?: number;
   z?: number;
-  __threeObj?: any;
 }
 
 interface Link {
   source: string | Node;
   target: string | Node;
+  sourceIndex?: number;
+  targetIndex?: number;
+  type?: 'backbone' | 'base_pair';
 }
 
 interface GraphData {
+  sequence?: string;
+  structure?: string;
   nodes: Node[];
   edges: Link[];
+  layout?: { type: string; coordinates: Array<{ index: number; x: number; y: number }> } | null;
 }
 
 interface ClassifiedLinks {
@@ -98,10 +103,7 @@ const MORANDI_BASE_COLORS = {
 const MORANDI_COLORS = MORANDI_BASE_COLORS;
 
 interface GcnVizProps {
-  data?: {
-    nodes: Node[];
-    edges: Link[];
-  };
+  data?: GraphData;
 }
 
 const GcnViz: React.FC<GcnVizProps> = ({ data: propData }) => {
@@ -110,7 +112,7 @@ const GcnViz: React.FC<GcnVizProps> = ({ data: propData }) => {
   const [error, setError] = useState<string | null>(null);
   const [gcnData, setGcnData] = useState<GraphData | null>(null);
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
-  const graphRef = useRef<any>(null);
+  const graphRef = useRef<ForceGraphMethods<Node, Link> | undefined>(undefined);
   const containerRef = useRef<HTMLDivElement>(null);
   const resizeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const classifiedLinksRef = useRef<ClassifiedLinks | null>(null);
@@ -128,6 +130,14 @@ const GcnViz: React.FC<GcnVizProps> = ({ data: propData }) => {
     });
 
     links.forEach((link) => {
+      if (link.type === 'backbone') {
+        backboneLinks.push(link);
+        return;
+      }
+      if (link.type === 'base_pair') {
+        pairingLinks.push(link);
+        return;
+      }
       const sourceNode = typeof link.source === 'string' 
         ? nodes.find(n => n.id === link.source)
         : link.source;
@@ -155,6 +165,10 @@ const GcnViz: React.FC<GcnVizProps> = ({ data: propData }) => {
 
   // Helper function to check if a link is a backbone connection
   const isBackboneLink = (link: Link): boolean => {
+    if (link.type) return link.type === 'backbone';
+    if (typeof link.sourceIndex === 'number' && typeof link.targetIndex === 'number') {
+      return Math.abs(link.sourceIndex - link.targetIndex) === 1;
+    }
     const sourceNode = typeof link.source === 'string' ? link.source : link.source.id;
     const targetNode = typeof link.target === 'string' ? link.target : link.target.id;
     
@@ -183,12 +197,6 @@ const GcnViz: React.FC<GcnVizProps> = ({ data: propData }) => {
 
       setContainerSize({ width: availableWidth, height: availableHeight });
 
-      if (graphRef.current) {
-        requestAnimationFrame(() => {
-          graphRef.current?.width(availableWidth);
-          graphRef.current?.height(availableHeight);
-        });
-      }
     };
 
     updateSize();
@@ -233,53 +241,52 @@ const GcnViz: React.FC<GcnVizProps> = ({ data: propData }) => {
     const classified = classifyLinks(gcnData.edges, gcnData.nodes);
     classifiedLinksRef.current = classified;
 
-    // Access the d3-force engine
-    const forceEngine = graph.d3Force();
-
-    // Set velocity decay for smoother, longer simulation
-    if (forceEngine) {
-      // Configure charge force for repulsion
-      forceEngine('charge').strength(-150);
-      
-      // Configure link force
-      forceEngine('link').distance(20).strength(0.1);
-      
-      // Configure center force to keep graph centered
-      forceEngine('center').strength(0.1);
-    }
+    type AdjustableForce = {
+      strength: (value: number) => AdjustableForce;
+      distance?: (value: number) => AdjustableForce;
+    };
+    const chargeForce = graph.d3Force('charge') as AdjustableForce | undefined;
+    const linkForce = graph.d3Force('link') as AdjustableForce | undefined;
+    const centerForce = graph.d3Force('center') as AdjustableForce | undefined;
+    chargeForce?.strength(-150);
+    linkForce?.distance?.(20).strength(0.1);
+    centerForce?.strength(0.1);
 
     console.log('GCN Visualization initialized with', gcnData.nodes.length, 'nodes and', gcnData.edges.length, 'edges');
   }, [gcnData]);
 
   useEffect(() => {
     const processData = (graphData: GraphData) => {
-      if (graphData.nodes) {
-        graphData.nodes.forEach((node: any) => {
-          node.label = node.id;
-          
-          // Remove fixed positions - let physics simulation handle the natural folding
-          // The physics forces (steric hindrance, backbone rigidity, folding driver)
-          // will naturally determine the molecule's 3D structure
-        });
-      }
+      // Clone the API payload so react-force-graph can resolve link endpoints
+      // without mutating React Query's cached result object.
+      const layoutCoordinates = new Map(
+        (graphData.layout?.coordinates || []).map((coordinate) => [coordinate.index, coordinate]),
+      );
+      const nodes = graphData.nodes.map((node, fallbackIndex) => {
+        const nodeIndex = node.data?.index ?? fallbackIndex;
+        const coordinate = layoutCoordinates.get(nodeIndex);
+        return {
+          ...node,
+          label: node.label || node.id,
+          // The backend layout is normalized to [0, 1]. Use it as a stable
+          // initial position; the 3D force simulation can then refine it.
+          x: coordinate ? (coordinate.x - 0.5) * 400 : node.x,
+          y: coordinate ? (coordinate.y - 0.5) * 400 : node.y,
+          z: node.z ?? 0,
+        };
+      });
+      const nodeMap = new Map(nodes.map((node) => [node.id, node]));
+      const edges = graphData.edges.map((link) => ({
+        ...link,
+        source: typeof link.source === 'string'
+          ? (nodeMap.get(link.source) || link.source)
+          : (nodeMap.get(link.source.id) || link.source),
+        target: typeof link.target === 'string'
+          ? (nodeMap.get(link.target) || link.target)
+          : (nodeMap.get(link.target.id) || link.target),
+      }));
 
-      if (graphData.edges && graphData.nodes) {
-        const nodeMap = new Map<string, Node>();
-        graphData.nodes.forEach((node: Node) => {
-          nodeMap.set(node.id, node);
-        });
-
-        graphData.edges.forEach((link: any) => {
-          if (typeof link.source === 'string') {
-            link.source = nodeMap.get(link.source);
-          }
-          if (typeof link.target === 'string') {
-            link.target = nodeMap.get(link.target);
-          }
-        });
-      }
-
-      setGcnData(graphData);
+      setGcnData({ ...graphData, nodes, edges });
     };
 
     if (propData) {
@@ -306,18 +313,22 @@ const GcnViz: React.FC<GcnVizProps> = ({ data: propData }) => {
           dataset: dataset,
           datasetIndex: datasetIndex,
         });
+        if (!apiData.gcn) {
+          throw new Error('Backend response does not contain GCN graph data.');
+        }
         const graphData: GraphData = apiData.gcn;
 
         processData(graphData);
-      } catch (e: any) {
-        setError(t('Unable to load graph data: {message}').replace('{message}', e.message));
+      } catch (e: unknown) {
+        const message = e instanceof Error ? e.message : String(e);
+        setError(t('Unable to load graph data: {message}').replace('{message}', message));
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [propData, rnaSequence, dataset, datasetIndex]);
+  }, [propData, rnaSequence, dataset, datasetIndex, t]);
 
   // Set camera position after data is loaded
   useEffect(() => {

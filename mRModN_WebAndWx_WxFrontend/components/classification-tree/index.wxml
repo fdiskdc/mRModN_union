@@ -1,0 +1,20 @@
+<view class="card">
+  <view class="heading">
+    <view><text>修饰分类</text><text class="count">检测到 {{positiveCount}} 类修饰</text></view>
+    <text class="legend"><i></i>预测阳性</text>
+  </view>
+  <view wx:if="{{!showAll && !displayGroups.length}}" class="empty">当前阈值下未检测到阳性修饰，可查看全部 12 类结果。</view>
+  <view wx:for="{{displayGroups}}" wx:key="name" class="group">
+    <view class="group-title {{item.isPredicted ? 'active' : ''}}">
+      <text>{{item.name}}</text>
+      <text>{{item.probabilityText}}</text>
+    </view>
+    <view class="mods">
+      <view wx:for="{{item.children}}" wx:for-item="mod" wx:key="name" class="mod {{mod.isPredicted ? 'active' : ''}}">
+        <view><text class="mod-name">{{mod.name}}</text><text class="probability">{{mod.probabilityText}}</text></view>
+        <text class="state">{{mod.isPredicted ? '已检测 ✓' : '未检测'}}</text>
+      </view>
+    </view>
+  </view>
+  <button class="toggle" bindtap="toggleAll">{{showAll ? '仅查看已检测类别' : '查看全部 12 类'}}</button>
+</view>

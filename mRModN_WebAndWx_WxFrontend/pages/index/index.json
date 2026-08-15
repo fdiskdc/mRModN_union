@@ -1,4 +1,7 @@
 {
   "usingComponents": {
+    "sequence-card": "/components/sequence-card/index",
+    "analysis-progress": "/components/analysis-progress/index",
+    "app-header": "/components/app-header/index"
   }
 }

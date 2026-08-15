@@ -1,3 +1,14 @@
 {
-  "navigationBarTitleText": "分析结果"
+  "navigationBarTitleText": "分析结果",
+  "usingComponents": {
+    "result-summary": "/components/result-summary/index",
+    "result-tabs": "/components/result-tabs/index",
+    "classification-tree": "/components/classification-tree/index",
+    "attention-sites": "/components/attention-sites/index",
+    "attention-chart": "/components/attention-chart/index",
+    "rna-graph": "/components/rna-graph/index",
+    "empty-state": "/components/empty-state/index",
+    "error-state": "/components/error-state/index"
+  },
+  "enablePullDownRefresh": true
 }

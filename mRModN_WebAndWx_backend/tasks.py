@@ -50,6 +50,7 @@ from torch_geometric.data import Batch
 from main_model import RNA_ClassQuery_Model
 from human import run_linearfold, build_edge_index_from_structure, MOD_NAMES
 from common import INDEX_TO_NUCLEOTIDE
+from graph_contract import build_graph_contract
 from attention_distribution import (
     attention_distribution_cache_key,
     build_attention_distribution,
@@ -421,12 +422,16 @@ def run_prediction_task(self, original_sequence, target_class_id=None, top_k=Non
                 # Add all modification child nodes, regardless of prediction
                 children.append({
                     "name": MOD_NAMES.get(class_idx, f"Class{class_idx}"),
-                    "isPredicted": class_predicted
+                    "isPredicted": class_predicted,
+                    "probability": float(probs_12class[class_idx]),
+                    "threshold": float(thresholds_12class[class_idx]),
                 })
 
             classification["children"].append({
                 "name": f"Group {group_name}",
                 "isPredicted": group_predicted,
+                "probability": float(probs_4class[group_idx]) if model_cfg['use_hierarchical'] else None,
+                "threshold": float(thresholds_4class[group_idx]) if model_cfg['use_hierarchical'] else None,
                 "children": children
             })
 
@@ -531,75 +536,36 @@ def run_prediction_task(self, original_sequence, target_class_id=None, top_k=Non
             all_top_sites.sort(key=lambda x: x["score"], reverse=True)
             attention_data["weights"] = all_top_sites
 
-        # Build GCN graph data
-        # Limit to original sequence for visualization
+        # Build the shared GCN/RNA graph contract. The helper maps model
+        # coordinates back to the original sequence, removes reverse duplicates,
+        # and labels backbone/base-pair edges explicitly for all clients.
         edge_index_np = edge_index.cpu().numpy()
-        edges = []
-
-        # Calculate the valid range in model coordinates
-        valid_start = left_padding
-        valid_end = left_padding + len(original_sequence)
-
-        # Process all edges
-        for i in range(int(edge_index_np.shape[1])):
-            source = int(edge_index_np[0, i])
-            target = int(edge_index_np[1, i])
-
-            # Only process edges within valid range
-            if not (0 <= source < len(sequence) and 0 <= target < len(sequence)):
-                continue
-
-            # Map model indices to original indices
-            orig_source = source - left_padding + left_trimming
-            orig_target = target - left_padding + left_trimming
-
-            # Only include edges within original sequence bounds
-            if not (0 <= orig_source < len(original_sequence) and 0 <= orig_target < len(original_sequence)):
-                continue
-
-            # Only keep one direction (source < target) to avoid duplicates in visualization
-            if source >= target:
-                continue
-
-            nuc_source = original_sequence[orig_source]
-            nuc_target = original_sequence[orig_target]
-            edges.append({
-                "source": f"{nuc_source}{orig_source}",
-                "target": f"{nuc_target}{orig_target}"
-            })
-
-        logger.info(f"Task {self.request.id}: GCN visualization stats: total edges={len(edges)}")
-
-        # Create nodes (use all nodes from original sequence)
-        nodes = []
-        for i in range(len(original_sequence)):
-            nuc = original_sequence[i]
-            nodes.append({
-                "id": f"{nuc}{i}",
-                "label": f"位置{i}: {nuc}",
-                "data": {"index": i, "type": nuc, "name": f"{'腺嘌呤' if nuc == 'A' else '胞嘧啶' if nuc == 'C' else '鸟嘌呤' if nuc == 'G' else '尿嘧啶'}"}
-            })
-
-        # Create a set of valid node IDs for filtering edges
-        valid_node_ids = {node["id"] for node in nodes}
-
-        # Filter edges to only include those that reference valid nodes
-        valid_edges = [
-            edge for edge in edges
-            if edge["source"] in valid_node_ids and edge["target"] in valid_node_ids
-        ]
-
-        logger.info(f"Task {self.request.id}: GCN visualization stats: nodes={len(nodes)}, valid edges={len(valid_edges)}")
-
-        gcn_data = {
-            "nodes": nodes,
-            "edges": valid_edges
-        }
+        edge_pairs = zip(edge_index_np[0].tolist(), edge_index_np[1].tolist())
+        if left_padding:
+            visible_structure = structure[left_padding:left_padding + len(original_sequence)]
+        elif left_trimming:
+            right_trimming = max(0, len(original_sequence) - left_trimming - len(structure))
+            visible_structure = "." * left_trimming + structure + "." * right_trimming
+        else:
+            visible_structure = structure
+        gcn_data = build_graph_contract(
+            original_sequence=original_sequence,
+            structure=visible_structure,
+            edge_pairs=edge_pairs,
+            modeled_sequence_length=len(sequence),
+            left_padding=left_padding,
+            left_trimming=left_trimming,
+        )
+        logger.info(
+            f"Task {self.request.id}: GCN visualization stats: "
+            f"nodes={len(gcn_data['nodes'])}, edges={len(gcn_data['edges'])}"
+        )
 
         # Build final response
         response = {
             "jobId": job_id,
             "status": "completed",
+            "sequence": original_sequence,
             "classification": classification,
             "attention": attention_data,
             "gcn": gcn_data

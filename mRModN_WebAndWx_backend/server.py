@@ -13,7 +13,7 @@ workers via Celery + Redis.
 - 同步推理接口(/api/v1/submit-task, /api/v1/wx-submit-task) / Sync inference
 - 异步任务轮询(/api/v1/get-result, /api/v1/wx-get-result) / Async result polling
 - 可视化接口(/api/v1/ig, /api/v1/umap, attention) / Viz endpoints
-- 微信登录(/api/v1/wx-login) / WeChat login
+- 微信登录(/api/v1/wx/login) / WeChat login
 
 输入 / Inputs:
 - HTTP 请求:JSON body 含 sequence(s)、taskType 等 / HTTP requests with JSON body
@@ -39,7 +39,7 @@ workers via Celery + Redis.
 作者 / Author: 项目组 / Project Team
 版本 / Version: 1.0
 """
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, g
 from flask_cors import CORS
 import json
 import csv
@@ -48,6 +48,7 @@ import redis
 import hashlib
 import uuid
 import time
+from functools import wraps
 import numpy as np
 import torch
 import requests
@@ -60,6 +61,7 @@ from main_model import RNA_ClassQuery_Model
 from human import run_linearfold, build_edge_index_from_structure
 from common import INDEX_TO_NUCLEOTIDE
 from attention_distribution import attention_distribution_cache_key
+from session_auth import issue_session_token, verify_session_token
 from tasks import celery_app, run_prediction_task
 from config import config, get_logger
 from mrmodn_backend.api.reid import reid_bp
@@ -84,6 +86,28 @@ except Exception as e:
     logger.warning(f"Could not connect to Redis: {e}")
     logger.warning("Falling back to in-memory storage (not suitable for multi-worker gunicorn)")
     redis_client = None
+
+
+def _authorization_token():
+    header = request.headers.get("Authorization", "")
+    if not header.startswith("Bearer "):
+        return None
+    return header[7:].strip()
+
+
+def require_wx_session(view):
+    """Require a valid application session issued by ``/wx/login``."""
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        payload = verify_session_token(_authorization_token(), config.WX_SESSION_SECRET)
+        if not payload:
+            return jsonify({
+                "code": "UNAUTHORIZED",
+                "message": "登录状态已失效，请重新登录",
+            }), 401
+        g.wx_openid = payload["sub"]
+        return view(*args, **kwargs)
+    return wrapped
 
 
 def one_hot_encode_sequence(sequence: str) -> np.ndarray:
@@ -324,9 +348,16 @@ def wx_login():
         }
         
         # Return success response with user info
+        session_token = issue_session_token(
+            openid,
+            config.WX_SESSION_SECRET,
+            config.WX_SESSION_TTL,
+        )
         return jsonify({
             "code": 0,
             "openid": openid,
+            "token": session_token,
+            "expiresIn": config.WX_SESSION_TTL,
             "data": user_info,
             "message": "Login successful"
         }), 200
@@ -359,6 +390,7 @@ def wx_login():
 # ============================================================================
 
 @app.route('/api/v1/wx-submit-task', methods=['POST'])
+@require_wx_session
 def wx_submit_task():
     """
     Submit up to 5 prediction tasks for asynchronous processing with progress tracking.
@@ -426,6 +458,7 @@ def wx_submit_task():
             redis_client.hset(redis_key, 'completed_sequences', '0')
             redis_client.hset(redis_key, 'results', json.dumps([]))
             redis_client.hset(redis_key, 'creation_time', str(int(time.time())))
+            redis_client.hset(redis_key, 'owner_openid', g.wx_openid)
             # Set TTL for batch job (24 hours)
             redis_client.expire(redis_key, 86400)
             logger.info(f"Initialized Redis state for batch {batch_job_id}")
@@ -465,6 +498,7 @@ def wx_submit_task():
 # ============================================================================
 
 @app.route('/api/v1/wx-task-progress/<job_id>', methods=['GET'])
+@require_wx_session
 def wx_task_progress(job_id):
     """
     Retrieve the progress of a batch task by job_id.
@@ -502,6 +536,12 @@ def wx_task_progress(job_id):
         
         # Get all fields from Redis hash
         job_data = redis_client.hgetall(redis_key)
+        owner_openid = job_data.get('owner_openid')
+        if owner_openid and owner_openid != g.wx_openid:
+            return jsonify({
+                "code": "FORBIDDEN",
+                "message": "无权访问该任务",
+            }), 403
         
         # Parse data
         status = job_data.get('status', 'UNKNOWN')

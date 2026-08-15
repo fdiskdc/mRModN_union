@@ -52,10 +52,19 @@ import { uuidv7 } from './uuidv7';
 
 // ==================== Type Definitions ====================
 
+export interface ClassificationNode {
+  name: string;
+  isPredicted?: boolean;
+  probability?: number;
+  threshold?: number;
+  children?: ClassificationNode[];
+}
+
 export interface ResultData {
   jobId: string;
   status: 'completed' | 'processing' | 'failed' | 'unknown' | 'RETRY';
-  classification?: any;
+  sequence?: string;
+  classification?: ClassificationNode;
   attention?: {
     sequence: string;
     weights: Array<{
@@ -64,26 +73,120 @@ export interface ResultData {
       score: number;
     }>;
   };
-  gcn?: {
-    nodes: Array<{
-      id: string;
-      label: string;
-      data: {
-        index: number;
-        type: string;
-        name: string;
-      };
-    }>;
-    edges: Array<{
-      source: string;
-      target: string;
-    }>;
-  };
-  integratedGradients?: any;
-  gcnAggregation?: any;
+  gcn?: RnaGraphData;
+  integratedGradients?: AttributionGraphData;
+  gcnAggregation?: GcnAggregationData;
   error?: string;
   errorType?: string;
   step?: string;
+}
+
+
+export interface GraphNode {
+  id: string;
+  index?: number;
+  base?: string;
+  label?: string;
+  data?: { index: number; type: string; name?: string };
+  x?: number;
+  y?: number;
+  z?: number;
+}
+
+export interface GraphEdge {
+  source: string | GraphNode;
+  target: string | GraphNode;
+  sourceIndex?: number;
+  targetIndex?: number;
+  type?: 'backbone' | 'base_pair';
+}
+
+export interface RnaGraphData {
+  sequence?: string;
+  structure?: string;
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+  layout?: {
+    type: string;
+    coordinates: Array<{ index: number; x: number; y: number }>;
+  } | null;
+}
+
+
+export interface AttributionGraphNode {
+  id: string;
+  label?: string;
+  data?: {
+    index: number;
+    type: string;
+    name: string;
+    attributionScore?: number;
+  };
+  x?: number;
+  y?: number;
+  z?: number;
+}
+
+export interface AttributionGraphData {
+  nodes: AttributionGraphNode[];
+  edges: Array<{
+    source: string | AttributionGraphNode;
+    target: string | AttributionGraphNode;
+  }>;
+  targetClassId?: number;
+}
+
+export interface GcnAggregationData {
+  targetNode: number;
+  nodes: Array<{
+    id: string;
+    label?: string;
+    data?: { index: number; type: string; name?: string };
+  }>;
+  edges: Array<{ source: string; target: string }>;
+  aggregationData: Array<{
+    layer: number;
+    messages: Array<{ from: number; strength: number }>;
+  }>;
+}
+
+export interface ModelGraphData {
+  nodes: Array<{
+    id: string;
+    label: string;
+    attributes?: Record<string, string>;
+  }>;
+  edges: Array<{ id: string; source: string; target: string }>;
+}
+
+export interface LegacyPredictionResponse {
+  attention: {
+    sequence: string;
+    weights: Array<{
+      index: number;
+      type: string;
+      score: number;
+      originalScore?: number;
+      normalizedScore?: number;
+    }>;
+  };
+}
+
+export interface AttentionDistributionClass {
+  index: number;
+  name: string;
+  probability: number;
+  threshold: number;
+  is_predicted: boolean;
+  attention: number[];
+}
+
+export interface AttentionDistributionData {
+  job_id?: string;
+  sequence_length: number;
+  modeled_range: { start: number; end: number };
+  normalization: string;
+  classes: AttentionDistributionClass[];
 }
 
 export interface ApiError {
@@ -106,10 +209,10 @@ export interface SubmitTaskResponse {
   jobId: string;
   status: string;
   message?: string;
-  classification?: any;
-  attention?: any;
-  gcn?: any;
-  integratedGradients?: any;
+  classification?: ClassificationNode;
+  attention?: ResultData['attention'];
+  gcn?: RnaGraphData;
+  integratedGradients?: AttributionGraphData;
 }
 
 export interface IntegratedGradientsRequest {
@@ -346,10 +449,23 @@ export async function fetchResult(jobId: string): Promise<ResultData> {
   return response.json();
 }
 
+
+/** Fetch the complete cached per-class attention distribution for a task. */
+export async function fetchAttentionDistribution(
+  jobId: string,
+  predictedOnly = true,
+): Promise<AttentionDistributionData> {
+  const response = await fetch(ENDPOINTS.ATTENTION_DISTRIBUTION(jobId, predictedOnly));
+  if (!response.ok) {
+    throw await createApiError(response);
+  }
+  return response.json();
+}
+
 /**
  * Fetch model graph data
  */
-export async function fetchModelGraph(): Promise<any> {
+export async function fetchModelGraph(): Promise<ModelGraphData> {
   const response = await fetch(ENDPOINTS.MODEL_GRAPH);
 
   if (!response.ok) {
@@ -362,7 +478,7 @@ export async function fetchModelGraph(): Promise<any> {
 /**
  * Fetch integrated gradients data
  */
-export async function fetchIntegratedGradients(request: IntegratedGradientsRequest): Promise<any> {
+export async function fetchIntegratedGradients(request: IntegratedGradientsRequest): Promise<AttributionGraphData> {
   const response = await fetch(ENDPOINTS.INTEGRATED_GRADIENTS, {
     method: 'POST',
     headers: {
@@ -381,7 +497,7 @@ export async function fetchIntegratedGradients(request: IntegratedGradientsReque
 /**
  * Fetch GCN aggregation visualization data
  */
-export async function fetchGcnAggregation(request: GcnAggregationRequest): Promise<any> {
+export async function fetchGcnAggregation(request: GcnAggregationRequest): Promise<GcnAggregationData> {
   const response = await fetch(ENDPOINTS.VISUALIZE_GCN_AGGREGATION, {
     method: 'POST',
     headers: {
@@ -566,9 +682,9 @@ export async function fetchAttentionVisualization(request: { rnaSequence: string
 }
 
 /**
- * Legacy predict function (hardcoded localhost - consider updating)
+ * Legacy prediction shape retained behind the centralized endpoint configuration
  */
-export async function predict(request: any): Promise<any> {
+export async function predict(request: Record<string, unknown>): Promise<LegacyPredictionResponse> {
   const response = await fetch(ENDPOINTS.PREDICT, {
     method: 'POST',
     headers: {

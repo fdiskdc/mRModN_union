@@ -70,6 +70,7 @@ const TargetGcnViz = lazy(() => import('./pages/TargetGcnViz'));
 const IntegratedGradientsViz = lazy(() => import('./pages/IntegratedGradientsViz'));
 const ModelViz = lazy(() => import('./pages/ModelViz'));
 const ResultsPage = lazy(() => import('./pages/ResultsPage'));
+const EmbedResultsPage = lazy(() => import('./pages/EmbedResultsPage'));
 const ReidViz = lazy(() => import('./pages/ReidViz'));
 const VizDisplayPage = lazy(() => import('./pages/VizDisplayPage'));
 const ComparePage = lazy(() => import('./pages/ComparePage'));
@@ -91,6 +92,7 @@ const App: React.FC = () => {
             <Route path="/classic/viz/reid" element={<ReidViz />} />
           </Route>
           <Route path="/classic/results/:jobId" element={<ResultsPage />} />
+          <Route path="/embed/results/:jobId" element={<EmbedResultsPage />} />
           <Route path="/nextgen" element={<WorkspacePage />} />
           <Route path="/nextgen/viz-display" element={<VizDisplayPage />} />
           <Route path="/nextgen/reid" element={<ReidViz />} />

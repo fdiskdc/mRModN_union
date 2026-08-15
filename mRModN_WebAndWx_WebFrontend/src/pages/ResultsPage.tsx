@@ -50,6 +50,7 @@ import TargetGcnViz from './TargetGcnViz';
 import IntegratedGradientsViz from './IntegratedGradientsViz';
 import { fetchResult, isProcessing, isCompleted, isFailed, getErrorMessage } from '../lib/api';
 import { useTranslation } from '../lib/i18n/LanguageContext';
+import { useRna } from '../context/RnaContext';
 import './ResultsPage.css';
 
 type ViewType = 'classification' | 'attention' | 'attention-score' | 'gcn' | 'target-gcn' | 'integrated-gradients' | 'model-viz';
@@ -63,6 +64,7 @@ const ResultsPage: React.FC = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [hasTimedOut, setHasTimedOut] = useState(false);
   const { t } = useTranslation();
+  const { setRnaSequence } = useRna();
 
   // Detect mobile/desktop
   useEffect(() => {
@@ -93,6 +95,11 @@ const ResultsPage: React.FC = () => {
     },
     refetchIntervalInBackground: true,
   });
+
+  useEffect(() => {
+    const sequence = resultData?.sequence || resultData?.gcn?.sequence || resultData?.attention?.sequence;
+    if (sequence) setRnaSequence(sequence);
+  }, [resultData, setRnaSequence]);
 
   // Handle timeout
   useEffect(() => {
@@ -177,7 +184,7 @@ const ResultsPage: React.FC = () => {
       key: 'attention-score',
       label: t('Attention Score'),
       icon: <BarChartOutlined />,
-      component: <AttentionDistributionViz />
+      component: <AttentionDistributionViz jobId={jobId} />
     },
     {
       key: 'gcn',

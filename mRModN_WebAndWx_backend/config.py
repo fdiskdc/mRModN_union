@@ -120,6 +120,8 @@ class Config:
         self.WX_APPID = os.getenv('WX_APPID', '')
         self.WX_SECRET = os.getenv('WX_SECRET', '')
         self.WX_LOGIN_URL = 'https://api.weixin.qq.com/sns/jscode2session'
+        self.WX_SESSION_SECRET = os.getenv('WX_SESSION_SECRET', self.WX_SECRET or 'change-me-in-production')
+        self.WX_SESSION_TTL = int(os.getenv('WX_SESSION_TTL', 30 * 24 * 3600))
 
         # Classification Thresholds (12-class)
         self.THRESHOLDS_12_CLASS: Dict[int, float] = {

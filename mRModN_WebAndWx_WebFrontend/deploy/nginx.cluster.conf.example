@@ -1,14 +1,16 @@
 server {
-    listen 80;
-    server_name cluster.dawdawdawdawfafaawf.xyz;
+    listen 443 ssl http2;
+    server_name cmb.bnu.edu.cn;
 
-    # Replace this path with the directory containing the uploaded dist files.
-    root /var/www/mrmodn;
+    # Upload the Vite dist output to /var/www/mrmodn. Keeping root at
+    # /var/www makes a request for /mrmodn/assets/* resolve correctly.
+    root /var/www;
     index index.html;
 
-    # The single Flask backend exposes the unified mRModN API.
-    location /mrmodn/api/ {
-        proxy_pass http://127.0.0.1:8000;
+    # Public /mrmodn/api/v1/* -> Flask internal /api/v1/*.
+    location ^~ /mrmodn/api/ {
+        rewrite ^/mrmodn(/api/.*)$ $1 break;
+        proxy_pass http://127.0.0.1:9005;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -16,7 +18,7 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
-    # BrowserRouter routes must fall back to the React entry page.
+    # BrowserRouter refresh fallback under the same Vite base path.
     location /mrmodn/ {
         try_files $uri $uri/ /mrmodn/index.html;
     }

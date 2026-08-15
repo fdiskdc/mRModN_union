@@ -1,0 +1,1 @@
+<scroll-view scroll-x class="tabs"><view class="row"><view wx:for="{{tabs}}" wx:key="value" class="tab {{value === item.value ? 'active' : ''}}" data-value="{{item.value}}" bindtap="onTap">{{item.label}}</view></view></scroll-view>

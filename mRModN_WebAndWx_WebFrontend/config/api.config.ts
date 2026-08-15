@@ -47,8 +47,10 @@
 
 // ==================== Base URL Configuration ====================
 
-export const DEFAULT_BASE_URL = '/mrmodn/api/v1';
-export const BASE_URL = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL) ?? DEFAULT_BASE_URL;
+export const DEFAULT_APP_BASE_PATH = '/mrmodn';
+export const APP_BASE_PATH = ((typeof import.meta !== 'undefined' && import.meta.env?.VITE_APP_BASE_PATH) ?? DEFAULT_APP_BASE_PATH).replace(/\/$/, '');
+export const DEFAULT_BASE_URL = `${APP_BASE_PATH}/api/v1`;
+export const BASE_URL = ((typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL) ?? DEFAULT_BASE_URL).replace(/\/$/, '');
 
 // ==================== Default Headers ====================
 
@@ -65,9 +67,16 @@ export const LEGACY_PREDICT_URL = (typeof import.meta !== 'undefined' && import.
 
 export const ENDPOINTS = {
     SUBMIT_TASK: `${BASE_URL}/submit-task`,
-    GET_RESULT: (jobId: string) => `${BASE_URL}/results/${jobId}`,
+    WX_LOGIN: `${BASE_URL}/wx/login`,
+    WX_SUBMIT_TASK: `${BASE_URL}/wx-submit-task`,
+    WX_TASK_PROGRESS: (jobId: string) => `${BASE_URL}/wx-task-progress/${encodeURIComponent(jobId)}`,
+    RESULT: (jobId: string) => `${BASE_URL}/results/${encodeURIComponent(jobId)}`,
+    GET_RESULT: (jobId: string) => `${BASE_URL}/results/${encodeURIComponent(jobId)}`,
+    ATTENTION_DISTRIBUTION: (jobId: string, predictedOnly = true) =>
+        `${BASE_URL}/results/${encodeURIComponent(jobId)}/attention-distribution?predictedOnly=${predictedOnly}`,
     MODEL_GRAPH: `${BASE_URL}/model-graph`,
     INTEGRATED_GRADIENTS: `${BASE_URL}/integrated-gradients`,
+    GCN_AGGREGATION: `${BASE_URL}/visualize-gcn-aggregation`,
     VISUALIZE_GCN_AGGREGATION: `${BASE_URL}/visualize-gcn-aggregation`,
     MODEL_COMPARISON: `${BASE_URL}/model-comparison`,
     MRMODN_CLASSIFICATION_HEATMAP: `${BASE_URL}/rgcnformer-classification-heatmap`,

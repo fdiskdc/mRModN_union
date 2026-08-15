@@ -1,0 +1,1 @@
+<view class="state"><text class="icon">○</text><text class="title">{{title}}</text><text class="desc">{{description}}</text></view>

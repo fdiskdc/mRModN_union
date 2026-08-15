@@ -3,15 +3,14 @@
  *
  * 浏览器入口:创建 React 根、加载全局样式、装配 BrowserRouter、RnaProvider、LanguageProvider
  * 三个全局 Provider,然后渲染 <App /> 路由树。所有可视化页面都通过此入口挂载。
- * 部署在站点根路径 `/`,域名由 Nginx 配置决定。
+ * 默认部署在 `/mrmodn`,可通过 VITE_APP_BASE_PATH 覆盖。
  * Browser entry: creates the React root, loads global styles, and composes three global
  * providers (BrowserRouter → RnaProvider → LanguageProvider) before rendering the <App />
- * route tree. All visualization pages are mounted through this entry. The app is served
- * at the site root; the public domain is configured by Nginx.
+ * route tree. All visualization pages are mounted through this entry. The app is served under the configurable Vite base path (default `/mrmodn`).
  *
  * 功能模块 / Modules:
  * - createRoot(...).render(): React 18 根节点创建 + 渲染 / React 18 root + render
- * - BrowserRouter: HTML5 History 根路径路由 / HTML5 history router at site root
+ * - BrowserRouter: 使用统一 basename 的 HTML5 History 路由 / HTML5 history router with a shared basename
  * - RnaProvider: RNA 全局状态(序列、模型结果、对比数据)/ RNA global state context
  * - LanguageProvider: 中英双语运行时切换 / Bilingual i18n runtime switch
  * - StrictMode: 开发期双调用、过期 API 警告 / Dev double-invoke + deprecated API warning
@@ -38,7 +37,7 @@
  *   // index.html
  *   <div id="root"></div>
  *   <script type="module" src="/src/main.tsx"></script>
- *   // Vite 启动: npm run dev → http://localhost:5173/
+ *   // Vite 启动: npm run dev → http://localhost:9006/mrmodn/
  */
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
@@ -47,10 +46,11 @@ import { RnaProvider } from './context/RnaContext'
 import { LanguageProvider } from './lib/i18n/LanguageContext'
 import './index.css'
 import App from './App.tsx'
+import { APP_BASE_PATH } from '../config/api.config'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <BrowserRouter>
+    <BrowserRouter basename={APP_BASE_PATH}>
       <RnaProvider>
         <LanguageProvider>
           <App />

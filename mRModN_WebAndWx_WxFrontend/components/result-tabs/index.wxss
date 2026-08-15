@@ -1,0 +1,1 @@
+.tabs{white-space:nowrap}.row{display:flex;gap:12rpx;padding:4rpx}.tab{flex:1;min-width:128rpx;padding:20rpx 24rpx;text-align:center;border-radius:16rpx;color:#6C7588;background:#fff;border:2rpx solid #E8EBF2;font-size:25rpx}.tab.active{color:#fff;background:#5267D8;border-color:#5267D8;box-shadow:0 8rpx 20rpx rgba(82,103,216,.25)}
