@@ -25,13 +25,18 @@ test('classification immediately renders all categories with 未检出 wording',
   assert.doesNotMatch(wxml, /未检测|查看全部|仅查看/);
 });
 
-test('attention map highlights every Top site and mutes every other position', () => {
+test('attention sites use one horizontal sequence with positions, Top highlighting and key-site navigation', () => {
   const js = source('components/attention-sites/index.js');
   const wxml = source('components/attention-sites/index.wxml');
   const wxss = source('components/attention-sites/index.wxss');
   assert.match(js, /keyRanks\[index\] \|\| 0/);
+  assert.match(js, /activeAnchor: selectedSite \? `sequence-position-\$\{selectedSite\.index\}`/);
+  assert.match(wxml, /<scroll-view[\s\S]*scroll-x[\s\S]*scroll-into-view="\{\{activeAnchor\}\}"/);
+  assert.match(wxml, /class="position-label">\{\{item\.position\}\}<\/text>/);
   assert.match(wxml, /item\.keyRank \? 'key' : 'muted'/);
-  assert.match(wxml, /全部 Top 位点同时高亮/);
-  assert.match(wxss, /\.sequence-position\.muted\{/);
-  assert.match(wxss, /\.sequence-position\.key\{/);
+  assert.match(wxml, /上一个关键位点/);
+  assert.match(wxml, /下一个关键位点/);
+  assert.match(wxss, /\.sequence-row\{[^}]*display:inline-flex/);
+  assert.match(wxss, /\.sequence-position\.muted \.base-box\{/);
+  assert.match(wxss, /\.sequence-position\.key \.base-box\{/);
 });

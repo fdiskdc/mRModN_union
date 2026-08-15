@@ -1,7 +1,7 @@
 <view class="card">
   <view class="heading">
     <text>关键位点</text>
-    <text wx:if="{{sites.length}}">共 {{sites.length}} 个 Top 位点</text>
+    <text wx:if="{{sites.length}}">{{siteIndex + 1}} / {{sites.length}}</text>
   </view>
   <view class="controls">
     <picker mode="selector" range="{{modificationNames}}" value="{{selectedPickerIndex}}" bindchange="onModification">
@@ -10,31 +10,56 @@
     <view class="top">Top <input type="number" value="{{topX}}" bindblur="onTopX"/></view>
   </view>
   <block wx:if="{{sites.length}}">
-    <scroll-view scroll-x class="site-strip">
-      <view class="site-row">
-        <view wx:for="{{sites}}" wx:key="index" class="site-chip {{index === siteIndex ? 'active' : ''}}" data-index="{{index}}" bindtap="onSiteTap">
-          <text>Top {{item.rank}}</text>
-          <text>位置 {{item.index + 1}}</text>
-        </view>
-      </view>
-    </scroll-view>
     <view class="score">
-      <view><text class="score-label">当前关键位点 · Top {{sites[siteIndex].rank}}</text><text>位置 {{sites[siteIndex].index + 1}}</text></view>
+      <view>
+        <text class="score-label">当前关键位点 · Top {{sites[siteIndex].rank}}</text>
+        <text>位置 {{sites[siteIndex].index + 1}}</text>
+      </view>
       <text>{{sites[siteIndex].scoreText}}</text>
     </view>
-    <view class="map-heading">
-      <view><text class="map-title">全序列关键位点图</text><text class="map-desc">全部 Top 位点同时高亮，点击紫色位点可切换</text></view>
-      <view class="legend"><view class="legend-dot key-dot"></view><text>关键</text><view class="legend-dot muted-dot"></view><text>其他</text></view>
-    </view>
-    <view class="sequence-map">
-      <view wx:for="{{sequenceMap}}" wx:key="index" class="sequence-position {{item.keyRank ? 'key' : 'muted'}} {{item.active ? 'active' : ''}}" data-rank="{{item.keyRank}}" bindtap="onSequencePositionTap">
-        <text wx:if="{{item.keyRank}}" class="rank">{{item.keyRank}}</text>
-        <text class="base-letter">{{item.base}}</text>
+
+    <view class="sequence-heading">
+      <view>
+        <text class="sequence-title">RNA 序列</text>
+        <text class="sequence-desc">Top 位点紫色高亮，其他位点灰色；可左右滑动</text>
+      </view>
+      <view class="legend">
+        <view class="legend-dot key-dot"></view><text>关键</text>
+        <view class="legend-dot muted-dot"></view><text>其他</text>
       </view>
     </view>
+
+    <scroll-view
+      class="sequence-scroll"
+      scroll-x
+      enhanced
+      show-scrollbar="{{false}}"
+      scroll-with-animation
+      scroll-into-view="{{activeAnchor}}"
+    >
+      <view class="sequence-row">
+        <view class="sequence-spacer"></view>
+        <view
+          wx:for="{{sequenceRow}}"
+          wx:key="index"
+          id="sequence-position-{{item.index}}"
+          class="sequence-position {{item.keyRank ? 'key' : 'muted'}} {{item.active ? 'active' : ''}}"
+          data-rank="{{item.keyRank}}"
+          bindtap="onSequencePositionTap"
+        >
+          <text class="position-label">{{item.position}}</text>
+          <view class="base-box">
+            <text class="base-letter">{{item.base}}</text>
+            <text wx:if="{{item.keyRank}}" class="rank">Top {{item.keyRank}}</text>
+          </view>
+        </view>
+        <view class="sequence-spacer"></view>
+      </view>
+    </scroll-view>
+
     <view class="nav">
-      <button disabled="{{siteIndex <= 0}}" bindtap="prev">上一个</button>
-      <button disabled="{{siteIndex >= sites.length - 1}}" bindtap="next">下一个</button>
+      <button disabled="{{siteIndex <= 0}}" bindtap="prev">← 上一个关键位点</button>
+      <button disabled="{{siteIndex >= sites.length - 1}}" bindtap="next">下一个关键位点 →</button>
     </view>
   </block>
   <empty-state wx:else title="暂无关键位点" description="当前类别没有可展示的注意力位点"></empty-state>

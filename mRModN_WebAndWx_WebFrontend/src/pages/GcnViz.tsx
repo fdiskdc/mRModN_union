@@ -57,6 +57,9 @@ interface Node {
   x?: number;
   y?: number;
   z?: number;
+  fx?: number;
+  fy?: number;
+  fz?: number;
 }
 
 interface Link {
@@ -112,11 +115,22 @@ const GcnViz: React.FC<GcnVizProps> = ({ data: propData, compact = false }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [gcnData, setGcnData] = useState<GraphData | null>(null);
+  const [renderReady, setRenderReady] = useState(false);
+  const [webglAvailable] = useState(() => {
+    if (typeof document === 'undefined') return true;
+    try {
+      const canvas = document.createElement('canvas');
+      return !!(canvas.getContext('webgl2') || canvas.getContext('webgl'));
+    } catch {
+      return false;
+    }
+  });
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
   const graphRef = useRef<ForceGraphMethods<Node, Link> | undefined>(undefined);
   const containerRef = useRef<HTMLDivElement>(null);
   const resizeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const classifiedLinksRef = useRef<ClassifiedLinks | null>(null);
+  const revealTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { rnaSequence, dataset, datasetIndex } = useRna();
 
@@ -250,12 +264,19 @@ const GcnViz: React.FC<GcnVizProps> = ({ data: propData, compact = false }) => {
     const chargeForce = graph.d3Force('charge') as AdjustableForce | undefined;
     const linkForce = graph.d3Force('link') as AdjustableForce | undefined;
     const centerForce = graph.d3Force('center') as AdjustableForce | undefined;
-    chargeForce?.strength(-150);
-    linkForce?.distance?.(20).strength(0.1);
-    centerForce?.strength(0.1);
+    if (compact) {
+      // 微信 WebView 使用后端坐标并固定节点，避免移动端持续进行昂贵的力模拟。
+      chargeForce?.strength(0);
+      linkForce?.strength(0);
+      centerForce?.strength(0);
+    } else {
+      chargeForce?.strength(-150);
+      linkForce?.distance?.(20).strength(0.1);
+      centerForce?.strength(0.1);
+    }
 
     console.log('GCN Visualization initialized with', gcnData.nodes.length, 'nodes and', gcnData.edges.length, 'edges');
-  }, [gcnData]);
+  }, [compact, gcnData]);
 
   useEffect(() => {
     const processData = (graphData: GraphData) => {
@@ -264,17 +285,22 @@ const GcnViz: React.FC<GcnVizProps> = ({ data: propData, compact = false }) => {
       const layoutCoordinates = new Map(
         (graphData.layout?.coordinates || []).map((coordinate) => [coordinate.index, coordinate]),
       );
+      const nodeCount = Math.max(graphData.nodes.length, 1);
       const nodes = graphData.nodes.map((node, fallbackIndex) => {
         const nodeIndex = node.data?.index ?? fallbackIndex;
         const coordinate = layoutCoordinates.get(nodeIndex);
+        const fallbackAngle = (fallbackIndex / nodeCount) * Math.PI * 2;
+        const x = coordinate ? (coordinate.x - 0.5) * 400 : (node.x ?? Math.cos(fallbackAngle) * 150);
+        const y = coordinate ? (coordinate.y - 0.5) * 400 : (node.y ?? Math.sin(fallbackAngle) * 150);
+        const z = node.z ?? (compact ? Math.sin(fallbackIndex * 0.42) * 24 : 0);
         return {
           ...node,
           label: node.label || node.id,
-          // The backend layout is normalized to [0, 1]. Use it as a stable
-          // initial position; the 3D force simulation can then refine it.
-          x: coordinate ? (coordinate.x - 0.5) * 400 : node.x,
-          y: coordinate ? (coordinate.y - 0.5) * 400 : node.y,
-          z: node.z ?? 0,
+          x,
+          y,
+          z,
+          // Compact 模式固定后端布局，显著减少微信 WebView 的 CPU/GPU 压力。
+          ...(compact ? { fx: x, fy: y, fz: z } : {}),
         };
       });
       const nodeMap = new Map(nodes.map((node) => [node.id, node]));
@@ -288,6 +314,7 @@ const GcnViz: React.FC<GcnVizProps> = ({ data: propData, compact = false }) => {
           : (nodeMap.get(link.target.id) || link.target),
       }));
 
+      setRenderReady(false);
       setGcnData({ ...graphData, nodes, edges });
     };
 
@@ -330,20 +357,27 @@ const GcnViz: React.FC<GcnVizProps> = ({ data: propData, compact = false }) => {
     };
 
     fetchData();
-  }, [propData, rnaSequence, dataset, datasetIndex, t]);
+  }, [compact, propData, rnaSequence, dataset, datasetIndex, t]);
 
-  // Set camera position after data is loaded
+  const fitGraph = (duration = 350) => {
+    if (!graphRef.current || !gcnData?.nodes.length) return;
+    graphRef.current.zoomToFit(duration, compact ? 28 : 60);
+  };
+
+  const revealGraph = () => {
+    fitGraph(compact ? 250 : 500);
+    setRenderReady(true);
+  };
+
+  // 即使力引擎没有触发 stop，也要在超时后显示画布，避免用户只看到白屏。
   useEffect(() => {
-    if (!gcnData || !graphRef.current) return;
-
-    // Wait a bit for the graph to render
-    setTimeout(() => {
-      const graph = graphRef.current;
-      if (graph && gcnData.nodes.length > 0) {
-        console.log('Camera positioned for visualization');
-      }
-    }, 1000);
-  }, [gcnData]);
+    if (!gcnData || !webglAvailable) return;
+    if (revealTimeoutRef.current) clearTimeout(revealTimeoutRef.current);
+    revealTimeoutRef.current = setTimeout(revealGraph, compact ? 650 : 1000);
+    return () => {
+      if (revealTimeoutRef.current) clearTimeout(revealTimeoutRef.current);
+    };
+  }, [compact, gcnData, webglAvailable]);
 
   if (!propData && !rnaSequence) {
     return (
@@ -383,7 +417,7 @@ const GcnViz: React.FC<GcnVizProps> = ({ data: propData, compact = false }) => {
         className="gcn-viz-container"
         style={{
           width: '100%',
-          height: compact ? '100vh' : '72vh',
+          height: compact ? '100dvh' : '72vh',
           minHeight: compact ? '100vh' : '480px',
           maxHeight: compact ? 'none' : '760px',
           position: 'relative',
@@ -396,67 +430,86 @@ const GcnViz: React.FC<GcnVizProps> = ({ data: propData, compact = false }) => {
           boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
         }}
       >
-        {loading && (
-          <Spin
-            tip={t('Loading graph data...')}
-            size="large"
-            style={{
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              zIndex: 100,
-            }}
-          />
+        {(loading || (gcnData && !renderReady && webglAvailable)) && (
+          <div style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 100,
+            display: 'grid',
+            placeItems: 'center',
+            background: 'linear-gradient(145deg, #F7F8FC 0%, #EEF1FF 100%)',
+            color: '#5267D8',
+          }}>
+            <div style={{ display: 'grid', justifyItems: 'center', gap: 14 }}>
+              <Spin size="large" />
+              <strong>{loading ? t('Loading graph data...') : '正在初始化交互式 3D…'}</strong>
+              <span style={{ color: '#7B8394', fontSize: 13 }}>首次打开需要加载 3D 渲染资源</span>
+            </div>
+          </div>
         )}
-        {error && (
-          <Alert
-            message={t('Error')}
-            description={error}
-            type="error"
-            showIcon
-            style={{ position: 'absolute', zIndex: 100, width: '80%', margin: '20px auto' }}
+        {(error || !webglAvailable) && (
+          <div style={{ position: 'absolute', inset: 0, zIndex: 110, display: 'grid', placeItems: 'center', padding: 24, background: '#F5F7FB' }}>
+            <Alert
+              message={webglAvailable ? t('Error') : '当前 WebView 不支持 3D 渲染'}
+              description={error || '请更新微信或系统 WebView；也可以返回小程序查看 RNA 二维结构。'}
+              type="error"
+              showIcon
+              action={<button type="button" onClick={() => window.location.reload()} style={{ border: 0, borderRadius: 8, padding: '8px 12px', background: '#5267D8', color: '#fff' }}>重新加载</button>}
+            />
+          </div>
+        )}
+
+        {gcnData && webglAvailable && containerSize.width > 0 && containerSize.height > 0 && (
+          <ForceGraph3D
+            ref={graphRef}
+            graphData={{
+              nodes: gcnData.nodes,
+              links: gcnData.edges,
+            }}
+            width={containerSize.width}
+            height={containerSize.height}
+            rendererConfig={{
+              antialias: !compact,
+              alpha: false,
+              powerPreference: 'high-performance',
+            }}
+            nodeLabel="label"
+            nodeColor={(node) => {
+              if (node.data && NUCLEOTIDE_MORANDI_COLORS[node.data.type as keyof typeof NUCLEOTIDE_MORANDI_COLORS]) {
+                return NUCLEOTIDE_MORANDI_COLORS[node.data.type as keyof typeof NUCLEOTIDE_MORANDI_COLORS];
+              }
+              return NUCLEOTIDE_MORANDI_COLORS.N;
+            }}
+            nodeRelSize={compact ? 5 : 20}
+            nodeResolution={compact ? 6 : 12}
+            linkColor={(link) => isBackboneLink(link)
+              ? MORANDI_BASE_COLORS.backboneLink
+              : MORANDI_BASE_COLORS.pairingLink}
+            linkWidth={(link) => compact
+              ? (isBackboneLink(link) ? 1.2 : 2.4)
+              : (isBackboneLink(link) ? 10 : 20)}
+            linkOpacity={compact ? 0.72 : 1}
+            linkResolution={compact ? 2 : 6}
+            backgroundColor={MORANDI_BASE_COLORS.background}
+            controlType="orbit"
+            enableNavigationControls
+            enableNodeDrag={!compact}
+            enablePointerInteraction={!compact}
+            showNavInfo={false}
+            warmupTicks={compact ? 0 : 20}
+            cooldownTicks={compact ? 1 : 200}
+            cooldownTime={compact ? 500 : 15000}
+            onEngineStop={revealGraph}
           />
         )}
 
-        {gcnData && containerSize.width > 0 && containerSize.height > 0 && (
+        {compact && renderReady && !error && webglAvailable && (
           <>
-            <ForceGraph3D
-              ref={graphRef}
-              graphData={{
-                nodes: gcnData.nodes,
-                links: gcnData.edges,
-              }}
-              width={containerSize.width}
-              height={containerSize.height}
-              nodeLabel="label"
-              nodeColor={(node) => {
-                // Ensure node.data exists and type field is valid
-                if (node.data && NUCLEOTIDE_MORANDI_COLORS[node.data.type as keyof typeof NUCLEOTIDE_MORANDI_COLORS]) {
-                  return NUCLEOTIDE_MORANDI_COLORS[node.data.type as keyof typeof NUCLEOTIDE_MORANDI_COLORS];
-                }
-                // If type is unknown or undefined, use 'N' color as default
-                return NUCLEOTIDE_MORANDI_COLORS['N'];
-              }}
-              nodeRelSize={20}
-              linkColor={(link) => {
-                // Check if link is a backbone connection
-                if (isBackboneLink(link)) {
-                  return MORANDI_BASE_COLORS.backboneLink;
-                }
-                return MORANDI_BASE_COLORS.pairingLink;
-              }}
-              linkWidth={(link) => {
-                // Backbone links are thinner, pairing links are thicker
-                return isBackboneLink(link) ? 10 : 20;
-              }}
-              backgroundColor={MORANDI_BASE_COLORS.background}
-              controlType="orbit"
-              enableNavigationControls={true}
-              enableNodeDrag={true}
-              showNavInfo={false}
-              cooldownTicks={200}
-            />
+            <div style={{ position: 'absolute', top: 14, right: 14, zIndex: 20, display: 'flex', gap: 8 }}>
+              <button type="button" onClick={() => fitGraph()} style={{ border: '1px solid rgba(82,103,216,.25)', borderRadius: 999, padding: '9px 13px', background: 'rgba(255,255,255,.92)', color: '#3348B5', fontWeight: 700, boxShadow: '0 4px 14px rgba(23,32,51,.14)' }}>适应屏幕</button>
+              <button type="button" onClick={() => graphRef.current?.cameraPosition({ x: 0, y: 0, z: 520 }, { x: 0, y: 0, z: 0 }, 350)} style={{ border: '1px solid rgba(82,103,216,.25)', borderRadius: 999, padding: '9px 13px', background: 'rgba(255,255,255,.92)', color: '#3348B5', fontWeight: 700, boxShadow: '0 4px 14px rgba(23,32,51,.14)' }}>重置视角</button>
+            </div>
+            <div style={{ position: 'absolute', left: '50%', bottom: 18, zIndex: 20, transform: 'translateX(-50%)', whiteSpace: 'nowrap', borderRadius: 999, padding: '7px 12px', background: 'rgba(23,32,51,.76)', color: '#fff', fontSize: 12 }}>单指旋转 · 双指缩放/移动</div>
           </>
         )}
       </div>

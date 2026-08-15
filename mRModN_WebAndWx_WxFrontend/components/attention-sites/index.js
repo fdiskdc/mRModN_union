@@ -12,7 +12,8 @@ Component({
     topX: 5,
     siteIndex: 0,
     sites: [],
-    sequenceMap: [],
+    sequenceRow: [],
+    activeAnchor: '',
   },
   observers: {
     'sequence,weights,modificationNames': function rebuildOnInput() {
@@ -39,22 +40,25 @@ Component({
         selectedPickerIndex: Math.max(0, names.indexOf(selectedName)),
         sites,
         siteIndex,
-      }, () => this.updateSequenceMap());
+      }, () => this.updateSequenceRow());
     },
-    updateSequenceMap() {
+    updateSequenceRow() {
       const selectedSite = this.data.sites[this.data.siteIndex];
       const keyRanks = this.data.sites.reduce((map, item) => {
         map[item.index] = item.rank;
         return map;
       }, {});
-      const sequenceMap = String(this.properties.sequence || '').split('').map((base, index) => ({
+      const sequenceRow = String(this.properties.sequence || '').split('').map((base, index) => ({
         base,
         index,
         position: index + 1,
         keyRank: keyRanks[index] || 0,
         active: !!selectedSite && index === selectedSite.index,
       }));
-      this.setData({ sequenceMap });
+      this.setData({
+        sequenceRow,
+        activeAnchor: selectedSite ? `sequence-position-${selectedSite.index}` : '',
+      });
       if (selectedSite) {
         this.triggerEvent('selectsite', { index: selectedSite.index, score: selectedSite.score });
       }
@@ -73,10 +77,7 @@ Component({
     },
     selectSite(siteIndex) {
       if (!Number.isInteger(siteIndex) || siteIndex < 0 || siteIndex >= this.data.sites.length) return;
-      this.setData({ siteIndex }, () => this.updateSequenceMap());
-    },
-    onSiteTap(e) {
-      this.selectSite(Number(e.currentTarget.dataset.index));
+      this.setData({ siteIndex }, () => this.updateSequenceRow());
     },
     onSequencePositionTap(e) {
       const keyRank = Number(e.currentTarget.dataset.rank);

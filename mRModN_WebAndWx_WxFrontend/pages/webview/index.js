@@ -2,6 +2,7 @@ const { isTrustedWebUrl, buildEmbedResultsUrl, CLIENT_BUILD_ID } = require('../.
 
 Page({
   data: {
+    jobId: '',
     url: '',
     loading: true,
     error: '',
@@ -12,13 +13,25 @@ Page({
       this.failAndBack('缺少任务 ID，无法加载 RNA 结构。');
       return;
     }
-    const url = buildEmbedResultsUrl(jobId, 'gcn');
+    this.setData({ jobId });
+    this.load3dPage();
+  },
+  load3dPage() {
+    const url = buildEmbedResultsUrl(this.data.jobId, 'gcn');
     if (!isTrustedWebUrl(url)) {
       this.failAndBack('RNA 结构页面地址不受信任，请检查当前 LAN/production 环境配置。');
       return;
     }
     console.info(`[mRModN ${CLIENT_BUILD_ID}] loading interactive RNA 3D:`, url);
     this.setData({ url, loading: true, error: '' });
+  },
+  retry() {
+    this.setData({ url: '', loading: true, error: '' }, () => {
+      setTimeout(() => this.load3dPage(), 80);
+    });
+  },
+  goBack() {
+    wx.navigateBack();
   },
   failAndBack(content) {
     wx.showModal({
@@ -34,11 +47,7 @@ Page({
   onWebViewError(e) {
     const message = (e.detail && e.detail.errMsg) || 'WebView 页面加载失败';
     this.setData({ loading: false, error: message });
-    wx.showModal({
-      title: '3D 页面加载失败',
-      content: `请确认内网 Web 前端 9006 端口已启动，手机可访问该地址；开发者工具调试时还需关闭合法域名校验。\n${message}`,
-      showCancel: false,
-    });
+    console.error('mRModN 3D WebView load failed:', message);
   },
   onMessage(e) {
     const messages = (e.detail && e.detail.data) || [];
