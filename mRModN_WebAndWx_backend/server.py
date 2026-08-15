@@ -1403,25 +1403,25 @@ def get_model_comparison():
 
 
 # ============================================================================
-# DCPRES Classification Heatmap Endpoint
+# mRModN Classification Heatmap Endpoint
 # ============================================================================
 
 @app.route('/api/v1/rgcnformer-classification-heatmap', methods=['GET'])
 def get_rgcnformer_classification_heatmap():
     """
-    Get DCPRES per-class classification performance data for heatmap visualization.
-    Returns the full 12-class classification metrics from DCPRES_cls.csv.
+    Get mRModN per-class classification performance data for heatmap visualization.
+    Returns the full 12-class classification metrics from mrmodn_res.csv.
     """
     try:
         csv_path = os.path.join(
             config.MODEL_COMPARISON_CSV_DIR,
-            config.MODEL_COMPARISON_FILES.get('DCPRES', 'DCPRES_cls.csv')
+            config.MODEL_COMPARISON_FILES.get('mRModN', 'mrmodn_res.csv')
         )
 
         if not os.path.exists(csv_path):
-            logger.error(f"DCPRES CSV file not found: {csv_path}")
+            logger.error(f"mRModN CSV file not found: {csv_path}")
             return jsonify({
-                "error": "DCPRES CSV file not found",
+                "error": "mRModN CSV file not found",
                 "detail": f"File {csv_path} does not exist"
             }), 404
 
@@ -1443,18 +1443,18 @@ def get_rgcnformer_classification_heatmap():
                 heatmap_data.append(row_data)
 
         response = {
-            "model_name": "DCPRES",
+            "model_name": "mRModN",
             "classes": classes,
             "metric_names": METRIC_COLUMNS,
             "data": heatmap_data
         }
 
-        logger.info(f"DCPRES heatmap data returned: {len(classes)} classes, {len(METRIC_COLUMNS)} metrics")
+        logger.info(f"mRModN heatmap data returned: {len(classes)} classes, {len(METRIC_COLUMNS)} metrics")
         return jsonify(response), 200
 
     except Exception as e:
         import traceback
-        error_msg = f"DCPRES heatmap error: {str(e)}"
+        error_msg = f"mRModN heatmap error: {str(e)}"
         logger.error(f"ERROR: {error_msg}")
         logger.error(f"Traceback:\n{traceback.format_exc()}")
         return jsonify({
@@ -1489,7 +1489,10 @@ def get_dataset_comparison_heatmap():
         wb = openpyxl.load_workbook(xlsx_path, data_only=True)
         ws = wb['Sheet1']
 
-        model_names = [cell.value for cell in ws[1][2:]]  # DAEGC, DyFSS, ..., DCPRES
+        model_names = [
+            'mRModN' if cell.value == 'DCPRES' else cell.value
+            for cell in ws[1][2:]
+        ]
         dataset_names = []
         metric_names = ['NMI', 'ACC', 'ARI', 'F1']
 
@@ -1552,9 +1555,9 @@ def get_dataset_comparison_heatmap():
 # ============================================================================
 
 LOC_COMPARISON_FILES = {
-    'DCPRES': 'DCPRES_loc.csv',
-    'SCDGC': 'SCDGC_loc.csv',
-    'DSCPS': 'DSCPS_loc.csv',
+    'mRModN': 'mrmodn_loc.csv',
+    'ModX': 'modx_loc.csv',
+    'MultiRM': 'multirm_loc.csv',
 }
 
 K_VALUE_COLUMNS = ['Top-1', 'Top-3', 'Top-5', 'Top-7', 'Top-10', 'Top-20', 'Top-50']
@@ -1568,7 +1571,10 @@ def get_rgcnformer_localization():
     Returns donut chart data (12 classes x 7 Top-K values) and per-class statistics.
     """
     try:
-        loc_csv_path = os.path.join(config.MODEL_COMPARISON_CSV_DIR, 'DCPRES_loc.csv')
+        loc_csv_path = os.path.join(
+            config.MODEL_COMPARISON_CSV_DIR,
+            LOC_COMPARISON_FILES['mRModN']
+        )
         stat_csv_path = os.path.join(config.MODEL_COMPARISON_CSV_DIR, 'statistic_loc.csv')
 
         if not os.path.exists(loc_csv_path):
@@ -1615,7 +1621,7 @@ def get_rgcnformer_localization():
                     })
 
         response = {
-            "model_name": "DCPRES",
+            "model_name": "mRModN",
             "classes": classes,
             "class_names": class_names,
             "k_labels": K_VALUE_COLUMNS,
@@ -1834,10 +1840,10 @@ def get_umap_cora_data():
 # ============================================================================
 
 ATTENTION_NPZ_FILES = {
-    'DCPRES': os.path.join(os.path.dirname(__file__), 'data', 'DCPRES_atten.npz'),
-    'SCDGC': os.path.join(os.path.dirname(__file__), 'data', 'SCDGC_atten.npz'),
-    'DSCPS': os.path.join(os.path.dirname(__file__), 'data', 'DSCPS_atten.npz'),
-    'GCN': os.path.join(os.path.dirname(__file__), 'data', 'GCN_atten.npz'),
+    'mRModN': os.path.join(os.path.dirname(__file__), 'data', 'mrmodn_full_atten.npz'),
+    'ModX': os.path.join(os.path.dirname(__file__), 'data', 'modx_full_atten.npz'),
+    'MultiRM': os.path.join(os.path.dirname(__file__), 'data', 'multirm_segmented_atten.npz'),
+    'EvoRMD': os.path.join(os.path.dirname(__file__), 'data', 'evormd_segmented_atten.npz'),
 }
 
 CLASS_NAMES = ['Am', 'Atol', 'Cm', 'Gm', 'Tm', 'Y', 'ac4C', 'm1A', 'm5C', 'm6A', 'm6Am', 'm7G']
@@ -1872,8 +1878,9 @@ def get_attention_comparison():
                 'indices': data['indices'],             # [200]
             }
 
-        # Use first model to determine sample indices (same across all models)
-        num_samples = models_data['DCPRES']['attn_weights'].shape[0]
+        # All precomputed model files contain the same sample set.
+        reference_data = models_data['mRModN']
+        num_samples = reference_data['attn_weights'].shape[0]
 
         sequence_id = request.args.get('sequence_id', type=str)
         if sequence_id is not None:
@@ -1885,7 +1892,7 @@ def get_attention_comparison():
                     "detail": "sequence_id must be an integer"
                 }), 400
 
-            sequence_ids = models_data['DCPRES']['indices']
+            sequence_ids = reference_data['indices']
             matches = np.where(sequence_ids == requested_sequence_id)[0]
             if matches.size == 0:
                 return jsonify({
@@ -1906,7 +1913,7 @@ def get_attention_comparison():
         for idx in selected_indices:
             idx = int(idx)
             sample_data = {
-                'index': int(models_data['DCPRES']['indices'][idx]),
+                'index': int(reference_data['indices'][idx]),
                 'models': {}
             }
 
@@ -1939,7 +1946,7 @@ def get_attention_comparison():
             'model_names': list(ATTENTION_NPZ_FILES.keys()),
             'available_sequence_ids': [
                 int(sequence_id)
-                for sequence_id in models_data['DCPRES']['indices']
+                for sequence_id in reference_data['indices']
             ],
         }
 

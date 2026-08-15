@@ -199,8 +199,8 @@ export const zh = {
     'Loading comparison data...': '正在加载比较数据...',
     'Failed to load comparison data': '加载比较数据失败',
     // New heatmap page translations
-'DCPRES Classification': 'DCPRES 分类性能',
-'DCPRES Classification Performance': 'DCPRES 分类性能详情',
+    'mRModN Classification': 'mRModN 分类性能',
+    'mRModN Classification Performance': 'mRModN 分类性能详情',
     // Localization translations
     'Localization': '定位性能',
     'Localization Performance': '定位性能详情',

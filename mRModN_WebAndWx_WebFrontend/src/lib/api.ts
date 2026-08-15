@@ -41,7 +41,7 @@
  * 版本 / Version: 1.0
  */
 /**
- * Unified API client for DCPRES backend
+ * Unified API client for mRModN backend
  * Centralized API endpoint management
  */
 
@@ -411,7 +411,7 @@ export async function fetchModelComparison(): Promise<CompareData> {
 }
 
 /**
- * Fetch DCPRES classification heatmap data
+ * Fetch mRModN classification heatmap data
  */
 export async function fetchMrmodnHeatmap(): Promise<MrmodnHeatmapData> {
   const response = await fetch(ENDPOINTS.MRMODN_CLASSIFICATION_HEATMAP);
@@ -437,7 +437,7 @@ export async function fetchDatasetComparison(): Promise<DatasetComparisonData> {
 }
 
 /**
- * Fetch DCPRES localization data
+ * Fetch mRModN localization data
  */
 export async function fetchMrmodnLocalization(): Promise<MrmodnLocalizationData> {
   const response = await fetch(ENDPOINTS.MRMODN_LOCALIZATION);
@@ -450,7 +450,7 @@ export async function fetchMrmodnLocalization(): Promise<MrmodnLocalizationData>
 }
 
 /**
- * Fetch DCPRES localization comparison data
+ * Fetch mRModN localization comparison data
  */
 export async function fetchMrmodnLocComparison(): Promise<LocComparisonData> {
   const response = await fetch(ENDPOINTS.MRMODN_LOC_COMPARISON);

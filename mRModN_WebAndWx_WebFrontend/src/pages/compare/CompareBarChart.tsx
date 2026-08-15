@@ -46,13 +46,13 @@ interface CompareBarChartProps {
   };
 }
 
-const MORANDI_COLORS = [
-  '#B8A9C9',  // DCPRES - muted purple
-  '#A3B5A6',  // SCDGC - sage green
-  '#C4A882',  // GCN - warm sand
-  '#D4A0A0',  // K-Means - dusty rose
-  '#8BA4B8',  // DSCPS - steel blue
-];
+const MODEL_COLORS: Record<string, string> = {
+  mRModN: '#B8A9C9',
+  ModX: '#A3B5A6',
+  MultiRM: '#C4A882',
+  MLP: '#D4A0A0',
+  EvoRMD: '#8BA4B8',
+};
 
 const CompareBarChart: React.FC<CompareBarChartProps> = ({ data }) => {
   const chartRef = useRef<HTMLDivElement>(null);
@@ -128,8 +128,8 @@ const CompareBarChart: React.FC<CompareBarChartProps> = ({ data }) => {
           },
         },
       },
-      series: data.models.map((model, modelIndex) => {
-        const color = MORANDI_COLORS[modelIndex % MORANDI_COLORS.length];
+      series: data.models.map((model) => {
+        const color = MODEL_COLORS[model.name] || '#8A8A8A';
         return {
           name: model.display_name,
           type: 'bar',

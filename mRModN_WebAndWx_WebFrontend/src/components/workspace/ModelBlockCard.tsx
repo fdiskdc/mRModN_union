@@ -1,11 +1,11 @@
 /**
  * ModelBlockCard.tsx - Model Zone 模型卡片 / Model Zone model card
  *
- * Workspace 工作区"Model Zone"中的卡片,代表一个可用的模型(DCPRES 等)。
+ * Workspace 工作区"Model Zone"中的卡片,代表一个可用的模型(mRModN 等)。
  * 展示模型标题、描述、状态(available → "✓ Available" / disabled → "Coming Soon")、
  * 版本号,以及已绑定的 sequence id 列表(每条显示为彩色圆点)。
  * disabled 状态下点击不触发选中(disabled 卡 onClick 为 undefined)。
- * Card inside the workspace's "Model Zone" rendering an available model (e.g. DCPRES).
+ * Card inside the workspace's "Model Zone" rendering an available model (e.g. mRModN).
  * Renders title, description, status (available/disabled), version, and the list of
  * bound sequence ids (each as a colored dot). Disabled cards do not respond to clicks.
  *

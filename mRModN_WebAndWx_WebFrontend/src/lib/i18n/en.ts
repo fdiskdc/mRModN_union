@@ -202,8 +202,8 @@ export const en = {
     'Loading comparison data...': 'Loading comparison data...',
     'Failed to load comparison data': 'Failed to load comparison data',
     // New heatmap page translations
-'DCPRES Classification': 'DCPRES Classification',
-'DCPRES Classification Performance': 'DCPRES Classification Performance',
+    'mRModN Classification': 'mRModN Classification',
+    'mRModN Classification Performance': 'mRModN Classification Performance',
     // Localization translations
     'Localization': 'Localization',
     'Localization Performance': 'Localization Performance',

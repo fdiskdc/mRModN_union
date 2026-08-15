@@ -314,7 +314,7 @@ const ComparePage: React.FC = () => {
         }}
       >
         <span style={{ fontSize: 16 }}>🔬</span>
-        {!siderCollapsed && <span>{t('DCPRES Classification')}</span>}
+        {!siderCollapsed && <span>{t('mRModN Classification')}</span>}
       </div>
 
       <div
@@ -410,7 +410,7 @@ const ComparePage: React.FC = () => {
         }}
       >
         <span style={{ fontSize: 16 }}>🔬</span>
-        <span>{t('DCPRES Classification')}</span>
+        <span>{t('mRModN Classification')}</span>
       </div>
       <div
         onClick={() => setSelectedVizType('datasetComparison')}

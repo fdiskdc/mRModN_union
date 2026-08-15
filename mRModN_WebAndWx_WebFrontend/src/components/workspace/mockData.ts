@@ -52,54 +52,34 @@ export const generateId = (prefix: string): string => {
 
 export const DEFAULT_MODELS: ModelBlock[] = [
   {
-    id: 'model_dcpres',
+    id: 'model_mrmodn',
     type: 'model',
-    title: 'DCPRES',
-    modelName: 'DCPRES',
+    title: 'mRModN',
+    modelName: 'mRModN',
     status: 'available',
     description:
       'Relation-aware Graph Convolutional Network with Transformer for RNA modification prediction. Supports 12 RNA modification types across A, C, G, U nucleotides.',
     version: 'v1.0',
   },
   {
-    id: 'model_gcn',
+    id: 'model_modx',
     type: 'model',
-    title: 'GCN',
-    modelName: 'GCN',
+    title: 'ModX',
+    modelName: 'ModX',
     status: 'available',
     description:
-      'Graph Convolutional Network for RNA modification site prediction. Leverages local graph structure of RNA sequences.',
+      'RNA modification prediction ablation model with a configurable subset of the main network modules.',
     version: 'v0.1',
   },
   {
-    id: 'model_kmeans',
+    id: 'model_multirm',
     type: 'model',
-    title: 'K-Means',
-    modelName: 'K-Means',
+    title: 'MultiRM',
+    modelName: 'MultiRM',
     status: 'available',
     description:
-      'K-Means clustering for unsupervised RNA modification pattern discovery and grouping.',
+      'Multi-task model for joint prediction and localization of multiple RNA modification types.',
     version: 'v0.1',
-  },
-  {
-    id: 'model_dscps',
-    type: 'model',
-    title: 'DSCPS',
-    modelName: 'DSCPS',
-    status: 'available',
-    description:
-      'Deep Semi-Supervised Clustering based on Pairwise Constraints and Sample Similarity',
-    version: 'v1.0',
-  },
-  {
-    id: 'model_scdgc',
-    type: 'model',
-    title: 'SCDGC',
-    modelName: 'SCDGC',
-    status: 'available',
-    description:
-      'Progressive Contrastive Structural Entropy for Graph Clustering',
-    version: 'v1.0',
   },
   {
     id: 'model_mlp',
@@ -110,6 +90,16 @@ export const DEFAULT_MODELS: ModelBlock[] = [
     description:
       'Multi-layer perceptron baseline for RNA modification prediction.',
     version: 'v0.1',
+  },
+  {
+    id: 'model_evormd',
+    type: 'model',
+    title: 'EvoRMD',
+    modelName: 'EvoRMD',
+    status: 'available',
+    description:
+      'RNA modification prediction model integrating evolutionary conservation features.',
+    version: 'v1.0',
   },
 ];
 

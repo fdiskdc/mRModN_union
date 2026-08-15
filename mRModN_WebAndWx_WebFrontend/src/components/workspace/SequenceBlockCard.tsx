@@ -46,6 +46,14 @@ import React from 'react';
 import type { SequenceBlock } from './types';
 import { BINDING_COLORS, getBindingColorIndex } from './types';
 
+const MODEL_NAMES: Record<string, string> = {
+  model_mrmodn: 'mRModN',
+  model_modx: 'ModX',
+  model_multirm: 'MultiRM',
+  model_mlp: 'MLP',
+  model_evormd: 'EvoRMD',
+};
+
 interface SequenceBlockCardProps {
   block: SequenceBlock;
   isSelected: boolean;
@@ -98,12 +106,12 @@ const SequenceBlockCard: React.FC<SequenceBlockCardProps> = ({
         </span>
         {block.boundModelId && colors && (
           <span style={{ marginLeft: 4, fontSize: 10, color: colors.accent }}>
-            → {block.boundModelId === 'model_dcpres' ? 'DCPRES' : block.boundModelId}
+            → {MODEL_NAMES[block.boundModelId] || block.boundModelId}
           </span>
         )}
         {block.boundModelId && !colors && (
           <span style={{ marginLeft: 4, fontSize: 10, color: 'var(--ws-text-muted)' }}>
-            → {block.boundModelId === 'model_dcpres' ? 'DCPRES' : block.boundModelId}
+            → {MODEL_NAMES[block.boundModelId] || block.boundModelId}
           </span>
         )}
       </div>
