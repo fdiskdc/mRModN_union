@@ -1,10 +1,14 @@
 {
-  "pages": ["pages/index/index", "pages/results/results", "pages/webview/index"],
+  "pages": [
+    "pages/index/index",
+    "pages/results/results",
+    "pages/webview/index"
+  ],
   "window": {
     "navigationBarTextStyle": "white",
     "navigationBarTitleText": "mRModN RNA 分析",
-    "navigationBarBackgroundColor": "#5267D8",
-    "backgroundColor": "#F5F7FB",
+    "navigationBarBackgroundColor": "#718394",
+    "backgroundColor": "#F3F1ED",
     "backgroundTextStyle": "dark"
   },
   "style": "v2",

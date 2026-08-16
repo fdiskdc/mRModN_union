@@ -5,6 +5,7 @@ function percent(value) {
 function prepareGroups(classification) {
   return ((classification && classification.children) || []).map((group) => ({
     ...group,
+    baseTone: (String(group.name || '').match(/([ACGU])$/) || [null, 'N'])[1].toLowerCase(),
     probabilityText: percent(group.probability),
     children: (group.children || []).map((item) => ({
       ...item,

@@ -12,7 +12,8 @@ const ENVIRONMENTS = {
   },
   production: {
     apiOrigins: [
-      'https://cmb.bnu.edu.cn'
+      'https://cmb.bnu.edu.cn',
+      'https://mrmodn.dawdawdawdawfafaawf.xyz'
     ],
     appBasePath: '/rgcnformer',
     apiPrefix: '/api/v1',

@@ -8,7 +8,7 @@
   </view>
   <view wx:if="{{!groups.length}}" class="empty">暂无分类结果</view>
   <view wx:for="{{groups}}" wx:key="name" class="group">
-    <view class="group-title {{item.isPredicted ? 'active' : ''}}">
+    <view class="group-title base-{{item.baseTone}} {{item.isPredicted ? 'active' : ''}}">
       <text>{{item.name}}</text>
       <text>{{item.probabilityText}}</text>
     </view>

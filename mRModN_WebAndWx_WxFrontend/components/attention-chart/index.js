@@ -1,4 +1,4 @@
-const { BRAND } = require('../../utils/constants/colors');
+const { HIGHLIGHT, TEXT, MUTED, BORDER } = require('../../utils/constants/colors');
 
 function topIndexes(weights, count = 5) {
   return weights
@@ -43,7 +43,7 @@ Component({
           const chartWidth = width - pad.l - pad.r;
           const chartHeight = height - pad.t - pad.b;
           const max = Math.max(...weights, 1e-9);
-          ctx.strokeStyle = '#E8EBF2';
+          ctx.strokeStyle = BORDER;
           ctx.lineWidth = 1;
           for (let index = 0; index < 4; index += 1) {
             const y = pad.t + chartHeight * index / 3;
@@ -63,14 +63,14 @@ Component({
           ctx.lineTo(points[points.length - 1].x, pad.t + chartHeight);
           ctx.closePath();
           const gradient = ctx.createLinearGradient(0, pad.t, 0, pad.t + chartHeight);
-          gradient.addColorStop(0, 'rgba(151,158,172,.22)');
-          gradient.addColorStop(1, 'rgba(151,158,172,.03)');
+          gradient.addColorStop(0, 'rgba(169,172,168,.22)');
+          gradient.addColorStop(1, 'rgba(169,172,168,.03)');
           ctx.fillStyle = gradient;
           ctx.fill();
 
           ctx.beginPath();
           points.forEach((point, index) => (index ? ctx.lineTo(point.x, point.y) : ctx.moveTo(point.x, point.y)));
-          ctx.strokeStyle = '#A6ACB8';
+          ctx.strokeStyle = '#9EA5A2';
           ctx.lineWidth = 1.5;
           ctx.stroke();
 
@@ -79,10 +79,10 @@ Component({
             const point = points[index];
             ctx.beginPath();
             ctx.arc(point.x, point.y, rank === 0 ? 6 : 4.5, 0, Math.PI * 2);
-            ctx.fillStyle = BRAND;
+            ctx.fillStyle = HIGHLIGHT;
             ctx.fill();
             ctx.lineWidth = 3;
-            ctx.strokeStyle = 'rgba(82,103,216,.2)';
+            ctx.strokeStyle = 'rgba(178,124,108,.20)';
             ctx.stroke();
           });
 
@@ -92,14 +92,14 @@ Component({
             const point = points[selected];
             ctx.beginPath();
             ctx.arc(point.x, point.y, 7, 0, Math.PI * 2);
-            ctx.fillStyle = '#172033';
+            ctx.fillStyle = TEXT;
             ctx.fill();
             ctx.lineWidth = 3;
             ctx.strokeStyle = '#FFFFFF';
             ctx.stroke();
           }
 
-          ctx.fillStyle = '#6C7588';
+          ctx.fillStyle = MUTED;
           ctx.font = '10px sans-serif';
           ctx.fillText(String(start + 1), pad.l, pad.t + chartHeight + 18);
           ctx.fillText(String(start + weights.length), width - pad.r - 32, pad.t + chartHeight + 18);

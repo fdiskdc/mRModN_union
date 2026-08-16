@@ -68,6 +68,13 @@ test('technical Web addresses use rgcnformer while the product brand remains mRM
   );
 });
 
+test('production config includes the cmb primary API and mrmodn backup API', () => {
+  assert.deepEqual(api.ENVIRONMENTS.production.apiOrigins, [
+    'https://cmb.bnu.edu.cn',
+    'https://mrmodn.dawdawdawdawfafaawf.xyz',
+  ]);
+});
+
 test('business errors do not switch to the backup API origin', async () => {
   reset([{ statusCode: 400, data: { code: 'INVALID_SEQUENCE', message: 'bad sequence' } }]);
   await assert.rejects(

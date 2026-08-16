@@ -1,4 +1,4 @@
-const { BASE, BRAND, ACCENT } = require('../../utils/constants/colors');
+const { BASE, ACCENT, HIGHLIGHT, TEXT } = require('../../utils/constants/colors');
 const { normalizeGraph } = require('../../utils/graph');
 
 Component({
@@ -80,7 +80,7 @@ Component({
             context.beginPath();
             context.moveTo(source.x, source.y);
             context.lineTo(target.x, target.y);
-            context.strokeStyle = edge.type === 'backbone' ? '#D6DAE4' : ACCENT;
+            context.strokeStyle = edge.type === 'backbone' ? '#BFC5C1' : ACCENT;
             context.globalAlpha = edge.type === 'backbone' ? 0.65 : 0.55;
             context.lineWidth = edge.type === 'backbone' ? 1 : 1.5;
             context.stroke();
@@ -97,7 +97,7 @@ Component({
             if (highlighted) {
               context.beginPath();
               context.arc(point.x, point.y, radiusValue + 4, 0, Math.PI * 2);
-              context.fillStyle = 'rgba(82,103,216,.18)';
+              context.fillStyle = 'rgba(178,124,108,.18)';
               context.fill();
             }
             context.beginPath();
@@ -105,12 +105,12 @@ Component({
             context.fillStyle = BASE[base] || BASE.N;
             context.fill();
             if (selected) {
-              context.strokeStyle = BRAND;
+              context.strokeStyle = HIGHLIGHT;
               context.lineWidth = 3;
               context.stroke();
             }
             if (showLabels) {
-              context.fillStyle = '#172033';
+              context.fillStyle = TEXT;
               context.font = '8px sans-serif';
               context.fillText(base, point.x - 2.5, point.y - 8);
             }

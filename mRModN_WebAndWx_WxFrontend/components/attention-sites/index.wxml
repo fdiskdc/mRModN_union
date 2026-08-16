@@ -21,7 +21,7 @@
     <view class="sequence-heading">
       <view>
         <text class="sequence-title">RNA 序列</text>
-        <text class="sequence-desc">Top 位点紫色高亮，其他位点灰色；可左右滑动</text>
+        <text class="sequence-desc">Top 位点陶土色高亮，其他位点灰色；可左右滑动</text>
       </view>
       <view class="legend">
         <view class="legend-dot key-dot"></view><text>关键</text>

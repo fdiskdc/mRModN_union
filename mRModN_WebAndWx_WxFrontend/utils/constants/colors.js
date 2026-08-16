@@ -1,5 +1,20 @@
 module.exports = {
-  BRAND: '#5267D8', BRAND_LIGHT: '#EEF1FF', ACCENT: '#28A69A',
-  TEXT: '#172033', MUTED: '#6C7588', BORDER: '#E8EBF2',
-  BASE: { A: '#D98C8C', C: '#629BD1', G: '#57A782', U: '#D8AE58', T: '#D8AE58', N: '#C8CDD8' }
+  BRAND: '#718394',
+  BRAND_DARK: '#607283',
+  BRAND_LIGHT: '#E4E9EC',
+  ACCENT: '#728B7B',
+  HIGHLIGHT: '#B27C6C',
+  TEXT: '#39434A',
+  MUTED: '#6F777B',
+  BORDER: '#D8D5CE',
+  SURFACE: '#FAF9F6',
+  BACKGROUND: '#F3F1ED',
+  BASE: {
+    A: '#AD7D7A',
+    C: '#738B9E',
+    G: '#788E7A',
+    U: '#AA9366',
+    T: '#AA9366',
+    N: '#A9ACA8',
+  },
 };
