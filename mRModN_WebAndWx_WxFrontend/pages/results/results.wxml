@@ -21,12 +21,31 @@
         <view class="structure-head"><view><text class="section-title">RNA 二级结构</text><text class="section-desc">注意力 Top 位点已在图中高亮</text></view><button bindtap="openWebView">交互式 3D</button></view>
         <rna-graph graph="{{currentResult.gcn}}" sequence="{{currentResult.sequence}}" highlighted-indices="{{currentResult.highlightedIndices}}" selected-index="{{selectedPosition}}" bindselect="onGraphSelect"></rna-graph>
       </view>
-    </view>
-    <view class="result-bottom-nav safe-bottom">
-      <view wx:for="{{resultTabs}}" wx:key="value" class="bottom-nav-item {{currentResultTab === item.value ? 'active' : ''}}" data-value="{{item.value}}" bindtap="onResultTabTap">
-        <text class="bottom-nav-icon">{{item.icon}}</text>
-        <text class="bottom-nav-label">{{item.label}}</text>
+      <view wx:elif="{{currentResultTab === 'interpretability'}}" class="interpretability-panel">
+        <view class="subtabs interpretability-tabs"><view class="{{interpretabilityMode === 'integrated-gradients' ? 'active' : ''}}" data-mode="integrated-gradients" bindtap="setInterpretabilityMode">梯度归因</view><view class="{{interpretabilityMode === 'gcn' ? 'active' : ''}}" data-mode="gcn" bindtap="setInterpretabilityMode">GCN 消息传递</view></view>
+        <view wx:if="{{interpretabilityMode === 'integrated-gradients'}}">
+          <view class="explanation-controls">
+            <picker mode="selector" range="{{modificationOptions}}" range-key="name" value="{{igClassIndex}}" bindchange="onIgClassChange"><view class="control-field"><text>目标修饰</text><text>{{modificationOptions[igClassIndex].name}}⌄</text></view></picker>
+            <picker mode="selector" range="{{topKOptions}}" value="{{igTopKIndex}}" bindchange="onIgTopKChange"><view class="control-field"><text>关键位点</text><text>Top {{topKOptions[igTopKIndex]}}⌄</text></view></picker>
+            <button class="compute-button" loading="{{igLoading}}" disabled="{{igLoading}}" bindtap="runIntegratedGradients">{{igLoading ? '计算中…' : '计算梯度归因'}}</button>
+          </view>
+          <view wx:if="{{igError}}" class="explanation-error">{{igError}}</view>
+          <view wx:if="{{igLoading}}" class="explanation-loading"><view class="spinner small"></view><text>正在执行 Integrated Gradients，可离开本页后稍后查看。</text></view>
+          <integrated-gradients wx:elif="{{igResult}}" sequence="{{currentResult.sequence}}" result="{{igResult}}" top-k="{{topKOptions[igTopKIndex]}}" bindselect="onExplanationGraphSelect"></integrated-gradients>
+          <empty-state wx:else title="尚未计算梯度归因" description="请选择目标修饰类别，然后开始计算。正、负贡献会分别着色，其他位置保持灰色。"></empty-state>
+        </view>
+        <view wx:else>
+          <view class="explanation-controls">
+            <view class="control-field target-input"><text>目标位置（1–{{currentResult.sequenceLength}}）</text><input type="number" value="{{gcnTargetPosition}}" bindinput="onGcnTargetInput"/></view>
+            <button class="compute-button" loading="{{gcnLoading}}" disabled="{{gcnLoading}}" bindtap="runGcnMessagePassing">{{gcnLoading ? '计算中…' : '计算消息传递'}}</button>
+          </view>
+          <view wx:if="{{gcnError}}" class="explanation-error">{{gcnError}}</view>
+          <view wx:if="{{gcnLoading}}" class="explanation-loading"><view class="spinner small"></view><text>正在提取 GCN 各层消息。</text></view>
+          <gcn-message-passing wx:elif="{{gcnResult}}" sequence="{{currentResult.sequence}}" result="{{gcnResult}}" bindselect="onExplanationGraphSelect"></gcn-message-passing>
+          <empty-state wx:else title="尚未计算 GCN 消息传递" description="输入目标碱基位置，查看各 GCN 层向该节点传递的消息强度。"></empty-state>
+        </view>
       </view>
     </view>
+    <view class="result-bottom-nav safe-bottom"><view wx:for="{{resultTabs}}" wx:key="value" class="bottom-nav-item {{currentResultTab === item.value ? 'active' : ''}}" data-value="{{item.value}}" bindtap="onResultTabTap"><text class="bottom-nav-icon">{{item.icon}}</text><text class="bottom-nav-label">{{item.label}}</text></view></view>
   </block>
 </view>

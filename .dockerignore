@@ -14,8 +14,6 @@
 old
 md
 SYSU-MM01.zip
-outputs/*
-!outputs/best.pt
 
 RGCNFormer_WebAndWx_WebFrontend/dist
 RGCNFormer_WebAndWx_WebFrontend/.omo
@@ -26,3 +24,11 @@ RGCNFormer_WebAndWx_backend/md
 RGCNFormer_WebAndWx_backend/.env.example
 RGCNFormer_WebAndWx_backend/Dockerfile
 RGCNFormer_WebAndWx_backend/docker-compose.yml
+
+# Runtime secrets and local state must never enter image layers.
+**/backend.env
+**/.env
+**/.env.*
+!**/.env.example
+**/wx-backend.env
+release

@@ -61,8 +61,14 @@ from main_model import RNA_ClassQuery_Model
 from human import run_linearfold, build_edge_index_from_structure
 from common import INDEX_TO_NUCLEOTIDE
 from attention_distribution import attention_distribution_cache_key
+from explanation_service import explanation_cache_key, normalize_rna_sequence
 from session_auth import issue_session_token, verify_session_token
-from tasks import celery_app, run_prediction_task
+from tasks import (
+    celery_app,
+    run_prediction_task,
+    compute_integrated_gradients_task,
+    compute_gcn_message_passing_task,
+)
 from config import config, get_logger
 from mrmodn_backend.api.reid import reid_bp
 
@@ -191,6 +197,7 @@ logger.info("Model is ready for predictions!")
 # ============================================================================
 
 @app.route('/api/health', methods=['GET'])
+@app.route('/api/v1/health', methods=['GET'])
 def health():
     """Health check endpoint"""
     return jsonify({
@@ -985,6 +992,79 @@ def get_model_graph():
             "detail": str(e),
             "type": type(e).__name__
         }), 500
+
+
+# ============================================================================
+# Asynchronous explainability endpoints for the WeChat mini-program
+# ============================================================================
+
+def _cached_explanation(kind, sequence, parameter):
+    if not redis_client:
+        return None
+    key = explanation_cache_key(kind, sequence, parameter, config.MODEL_CHECKPOINT_PATH)
+    cached = redis_client.get(key)
+    return json.loads(cached) if cached else None
+
+
+def _submit_explanation(kind, parameter_name, celery_task):
+    payload = request.get_json(silent=True) or {}
+    try:
+        sequence = normalize_rna_sequence(payload.get('rnaSequence', ''))
+        parameter = int(payload.get(parameter_name))
+        if kind == 'integrated-gradients' and not 0 <= parameter < 12:
+            raise ValueError('targetClassId must be between 0 and 11')
+        if kind == 'gcn-message-passing' and not 0 <= parameter < len(sequence):
+            raise ValueError(f'targetNodeIdx must be between 0 and {len(sequence) - 1}')
+    except (TypeError, ValueError) as exc:
+        return jsonify({'code': 'INVALID_ARGUMENT', 'message': str(exc)}), 400
+
+    cached = _cached_explanation(kind, sequence, parameter)
+    if cached is not None:
+        return jsonify({'code': 0, 'data': {'status': 'COMPLETED', 'cached': True, 'result': cached}}), 200
+
+    task = celery_task.delay(sequence, parameter)
+    return jsonify({
+        'code': 0,
+        'data': {'jobId': task.id, 'status': 'PENDING', 'cached': False, 'kind': kind},
+    }), 202
+
+
+@app.route('/api/v1/wx-explanations/integrated-gradients', methods=['POST'])
+@require_wx_session
+def submit_wx_integrated_gradients():
+    return _submit_explanation('integrated-gradients', 'targetClassId', compute_integrated_gradients_task)
+
+
+@app.route('/api/v1/wx-explanations/gcn-message-passing', methods=['POST'])
+@require_wx_session
+def submit_wx_gcn_message_passing():
+    return _submit_explanation('gcn-message-passing', 'targetNodeIdx', compute_gcn_message_passing_task)
+
+
+@app.route('/api/v1/wx-explanations/<job_id>', methods=['GET'])
+@require_wx_session
+def get_wx_explanation(job_id):
+    task = AsyncResult(job_id, app=celery_app)
+    status = str(task.state or 'PENDING').upper()
+    if status == 'SUCCESS':
+        return jsonify({'code': 0, 'data': {'jobId': job_id, 'status': 'COMPLETED', 'result': task.result}}), 200
+    if status == 'FAILURE':
+        logger.error('Explanation task %s failed: %s', job_id, task.result)
+        return jsonify({
+            'code': 'EXPLANATION_FAILED',
+            'data': {'jobId': job_id, 'status': 'FAILED', 'error': str(task.result)},
+            'message': '解释任务计算失败',
+        }), 200
+    meta = task.info if isinstance(task.info, dict) else {}
+    return jsonify({
+        'code': 0,
+        'data': {
+            'jobId': job_id,
+            'status': status,
+            'stage': meta.get('stage'),
+            'progress': meta.get('progress', 0),
+        },
+    }), 200
 
 
 @app.route('/api/v1/integrated-gradients', methods=['POST'])

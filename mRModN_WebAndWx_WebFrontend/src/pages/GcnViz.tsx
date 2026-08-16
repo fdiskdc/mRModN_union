@@ -265,10 +265,11 @@ const GcnViz: React.FC<GcnVizProps> = ({ data: propData, compact = false }) => {
     const linkForce = graph.d3Force('link') as AdjustableForce | undefined;
     const centerForce = graph.d3Force('center') as AdjustableForce | undefined;
     if (compact) {
-      // 微信 WebView 使用后端坐标并固定节点，避免移动端持续进行昂贵的力模拟。
-      chargeForce?.strength(0);
-      linkForce?.strength(0);
-      centerForce?.strength(0);
+      // Mobile/WebView balanced physics: restore force-directed relaxation while
+      // keeping the simulation bounded so the mini-program does not stay blank.
+      chargeForce?.strength(-48);
+      linkForce?.distance?.(19).strength(0.12);
+      centerForce?.strength(0.05);
     } else {
       chargeForce?.strength(-150);
       linkForce?.distance?.(20).strength(0.1);
@@ -299,8 +300,7 @@ const GcnViz: React.FC<GcnVizProps> = ({ data: propData, compact = false }) => {
           x,
           y,
           z,
-          // Compact 模式固定后端布局，显著减少微信 WebView 的 CPU/GPU 压力。
-          ...(compact ? { fx: x, fy: y, fz: z } : {}),
+          // Seed the simulation with backend coordinates; forces may then relax them.
         };
       });
       const nodeMap = new Map(nodes.map((node) => [node.id, node]));
@@ -493,12 +493,12 @@ const GcnViz: React.FC<GcnVizProps> = ({ data: propData, compact = false }) => {
             backgroundColor={MORANDI_BASE_COLORS.background}
             controlType="orbit"
             enableNavigationControls
-            enableNodeDrag={!compact}
-            enablePointerInteraction={!compact}
+            enableNodeDrag
+            enablePointerInteraction
             showNavInfo={false}
-            warmupTicks={compact ? 0 : 20}
-            cooldownTicks={compact ? 1 : 200}
-            cooldownTime={compact ? 500 : 15000}
+            warmupTicks={compact ? 24 : 20}
+            cooldownTicks={compact ? 80 : 200}
+            cooldownTime={compact ? 4000 : 15000}
             onEngineStop={revealGraph}
           />
         )}

@@ -55,13 +55,13 @@ function buildApiUrl(endpoint, index = getCurrentServerIndex()) { return joinUrl
 function normalizeWebPath(path) {
   const value = String(path || '').trim();
   if (!value) return '';
-  // 兼容历史调用方传入 /mrmodn/... 或已经带 /rgcnformer/... 的情况，
-  // 防止最终地址变成 /rgcnformer/mrmodn/... 或 /rgcnformer/rgcnformer/...
+  // 兼容历史调用方传入带 /rgcnformer/... 的情况，
+  // 防止最终地址重复拼接部署前缀。
   const queryIndex = value.indexOf('?');
   const pathname = queryIndex >= 0 ? value.slice(0, queryIndex) : value;
   const query = queryIndex >= 0 ? value.slice(queryIndex) : '';
   let normalized = `/${pathname.replace(/^\/+/, '')}`;
-  const knownBasePaths = [config.webBasePath, '/rgcnformer', '/mrmodn'];
+  const knownBasePaths = [config.webBasePath, '/rgcnformer', ['/', 'mrmodn'].join('')];
   knownBasePaths.forEach((basePath) => {
     const base = `/${String(basePath || '').replace(/^\/+|\/+$/g, '')}`;
     if (base === '/') return;
@@ -95,6 +95,9 @@ const ENDPOINTS = {
   INTEGRATED_GRADIENTS: '/integrated-gradients',
   GCN_AGGREGATION: '/visualize-gcn-aggregation',
   VISUALIZE_GCN_AGGREGATION: '/visualize-gcn-aggregation',
+  WX_EXPLANATION_INTEGRATED_GRADIENTS: '/wx-explanations/integrated-gradients',
+  WX_EXPLANATION_GCN: '/wx-explanations/gcn-message-passing',
+  WX_EXPLANATION_RESULT: (jobId) => `/wx-explanations/${encodeURIComponent(jobId)}`,
   MODEL_GRAPH: '/model-graph'
 };
 

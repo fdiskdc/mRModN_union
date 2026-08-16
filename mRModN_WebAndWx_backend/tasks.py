@@ -51,6 +51,12 @@ from main_model import RNA_ClassQuery_Model
 from human import run_linearfold, build_edge_index_from_structure, MOD_NAMES
 from common import INDEX_TO_NUCLEOTIDE
 from graph_contract import build_graph_contract
+from explanation_service import (
+    compute_gcn_message_passing,
+    compute_integrated_gradients,
+    explanation_cache_key,
+    normalize_rna_sequence,
+)
 from attention_distribution import (
     attention_distribution_cache_key,
     build_attention_distribution,
@@ -739,3 +745,52 @@ def process_sequence_in_batch(self, job_id, sequence_data, index, target_class_i
         
         # Re-raise the exception
         raise
+
+
+# ============================================================================
+# Mini-program explainability tasks
+# ============================================================================
+
+def _read_explanation_cache(cache_key):
+    if not redis_client:
+        return None
+    cached = redis_client.get(cache_key)
+    return json.loads(cached) if cached else None
+
+
+def _write_explanation_cache(cache_key, result):
+    if redis_client:
+        redis_client.setex(cache_key, config.EXPLANATION_CACHE_TTL, json.dumps(result, ensure_ascii=False))
+
+
+@celery_app.task(name='tasks.compute_integrated_gradients_task', bind=True)
+def compute_integrated_gradients_task(self, sequence, target_class_id):
+    sequence = normalize_rna_sequence(sequence)
+    cache_key = explanation_cache_key('integrated-gradients', sequence, target_class_id, config.MODEL_CHECKPOINT_PATH)
+    cached = _read_explanation_cache(cache_key)
+    if cached is not None:
+        return cached
+    self.update_state(state='PROGRESS', meta={'stage': 'integrated-gradients', 'progress': 10})
+    result = compute_integrated_gradients(
+        model=model, model_cfg=model_cfg, device=device, original_sequence=sequence,
+        target_class_id=int(target_class_id), target_length=config.MODEL_TARGET_LENGTH,
+        n_steps=config.INTEGRATED_GRADIENTS_STEPS,
+    )
+    _write_explanation_cache(cache_key, result)
+    return result
+
+
+@celery_app.task(name='tasks.compute_gcn_message_passing_task', bind=True)
+def compute_gcn_message_passing_task(self, sequence, target_node_idx):
+    sequence = normalize_rna_sequence(sequence)
+    cache_key = explanation_cache_key('gcn-message-passing', sequence, target_node_idx, config.MODEL_CHECKPOINT_PATH)
+    cached = _read_explanation_cache(cache_key)
+    if cached is not None:
+        return cached
+    self.update_state(state='PROGRESS', meta={'stage': 'gcn-message-passing', 'progress': 20})
+    result = compute_gcn_message_passing(
+        model=model, device=device, original_sequence=sequence, target_node_idx=int(target_node_idx),
+        target_length=config.MODEL_TARGET_LENGTH,
+    )
+    _write_explanation_cache(cache_key, result)
+    return result

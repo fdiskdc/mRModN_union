@@ -16,11 +16,10 @@ CONDA_BASE_PATH="$HOME/miniconda3"  # Conda installation path
 # ============================================================================
 # WeChat Mini Program Configuration
 # ============================================================================
-# Fill in the AppID and AppSecret from the WeChat Mini Program console.
-WX_APPID="wxcb604a93d537d38a"
-WX_SECRET="73e7bea0faafabef192ab5310688f0a2"
-export WX_APPID
-export WX_SECRET
+# Supply credentials from the environment; defaults intentionally stay empty.
+WX_APPID="${WX_APPID:-}"
+WX_SECRET="${WX_SECRET:-}"
+export WX_APPID WX_SECRET
 
 # Activate conda environment
 source "$CONDA_BASE_PATH/etc/profile.d/conda.sh"

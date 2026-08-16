@@ -7,7 +7,9 @@
     "attention-chart": "/components/attention-chart/index",
     "rna-graph": "/components/rna-graph/index",
     "empty-state": "/components/empty-state/index",
-    "error-state": "/components/error-state/index"
+    "error-state": "/components/error-state/index",
+    "integrated-gradients": "/components/integrated-gradients/index",
+    "gcn-message-passing": "/components/gcn-message-passing/index"
   },
   "enablePullDownRefresh": true
 }
