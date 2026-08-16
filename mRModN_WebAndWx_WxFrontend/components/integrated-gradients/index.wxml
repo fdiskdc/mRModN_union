@@ -1,5 +1,5 @@
 <view class="ig-root">
-  <view class="legend"><view><text class="dot positive"></text><text>正向贡献</text></view><view><text class="dot negative"></text><text>负向贡献</text></view><view><text class="dot muted"></text><text>其他位点</text></view></view>
+  <view class="legend"><view><text class="dot positive"></text><text>Positive Contribution</text></view><view><text class="dot negative"></text><text>Negative Contribution</text></view><view><text class="dot muted"></text><text>Other Sites</text></view></view>
   <view class="sequence-card">
     <view class="sequence-grid">
       <view wx:for="{{visibleSites}}" wx:key="index" class="site {{item.tone}} {{selectedSite && selectedSite.index === item.index ? 'selected' : ''}}" data-index="{{item.index}}" bindtap="selectSite">
@@ -8,10 +8,10 @@
         <text class="score">{{item.scoreText}}</text>
       </view>
     </view>
-    <view class="pager"><button disabled="{{!canPrev}}" bindtap="previous">上一个</button><text>{{windowStart + 1}}–{{windowEnd}} / {{sites.length}}</text><button disabled="{{!canNext}}" bindtap="next">下一个</button></view>
+    <view class="pager"><button disabled="{{!canPrev}}" bindtap="previous">Previous</button><text>{{windowStart + 1}}–{{windowEnd}} / {{sites.length}}</text><button disabled="{{!canNext}}" bindtap="next">Next</button></view>
   </view>
-  <view wx:if="{{selectedSite}}" class="selected-info"><text>位置 {{selectedSite.position}} · {{selectedSite.base}}（{{selectedSite.name}}）</text><text class="{{selectedSite.tone}}">归因 {{selectedSite.scoreText}}</text></view>
-  <view class="ranking"><text class="block-title">Top 归因位点</text><view wx:for="{{topSites}}" wx:key="index" class="rank-row"><text class="rank">{{item.rank}}</text><text class="rank-base">{{item.base}}{{item.position}}</text><text class="rank-score {{item.tone}}">{{item.scoreText}}</text></view></view>
-  <view class="graph-title"><text class="block-title">RNA 结构定位</text><text>Top 位点已高亮</text></view>
+  <view wx:if="{{selectedSite}}" class="selected-info"><text>Position {{selectedSite.position}} · {{selectedSite.base}} ({{selectedSite.name}})</text><text class="{{selectedSite.tone}}">Attribution {{selectedSite.scoreText}}</text></view>
+  <view class="ranking"><text class="block-title">Top Attribution Sites</text><view wx:for="{{topSites}}" wx:key="index" class="rank-row"><text class="rank">{{item.rank}}</text><text class="rank-base">{{item.base}}{{item.position}}</text><text class="rank-score {{item.tone}}">{{item.scoreText}}</text></view></view>
+  <view class="graph-title"><text class="block-title">RNA Structure Mapping</text><text>Top sites are highlighted</text></view>
   <rna-graph graph="{{result}}" sequence="{{sequence}}" highlighted-indices="{{highlightedIndices}}" selected-index="{{selectedSite ? selectedSite.index : -1}}" bindselect="selectSite"></rna-graph>
 </view>

@@ -1,5 +1,5 @@
 function nucleotideName(base) {
-  return ({ A: '腺嘌呤', C: '胞嘧啶', G: '鸟嘌呤', U: '尿嘧啶', T: '胸腺嘧啶' })[base] || '未知碱基';
+  return ({ A: 'adenine', C: 'cytosine', G: 'guanine', U: 'uracil', T: 'thymine' })[base] || 'unknown base';
 }
 
 Component({

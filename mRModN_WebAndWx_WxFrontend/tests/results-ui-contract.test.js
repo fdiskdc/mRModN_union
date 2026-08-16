@@ -15,14 +15,14 @@ test('result primary navigation is fixed at the bottom and no top result-tabs re
   assert.match(wxss, /\.result-bottom-nav\{[^}]*position:fixed[^}]*bottom:0/);
 });
 
-test('classification immediately renders all categories with 未检出 wording', () => {
+test('classification immediately renders all categories with Not detected wording', () => {
   const js = source('components/classification-tree/index.js');
   const wxml = source('components/classification-tree/index.wxml');
   assert.match(js, /prepareGroups\(classification\)/);
   assert.doesNotMatch(js, /showAll|displayGroups|toggleAll/);
-  assert.match(wxml, /共 12 类/);
-  assert.match(wxml, /未检出/);
-  assert.doesNotMatch(wxml, /未检测|查看全部|仅查看/);
+  assert.match(wxml, /12 total/);
+  assert.match(wxml, /Not detected/);
+  assert.doesNotMatch(wxml, /未检测|未检出|查看全部|仅查看|View all|Detected only/);
 });
 
 test('attention sites use one horizontal sequence with positions, Top highlighting and key-site navigation', () => {
@@ -34,8 +34,8 @@ test('attention sites use one horizontal sequence with positions, Top highlighti
   assert.match(wxml, /<scroll-view[\s\S]*scroll-x[\s\S]*scroll-into-view="\{\{activeAnchor\}\}"/);
   assert.match(wxml, /class="position-label">\{\{item\.position\}\}<\/text>/);
   assert.match(wxml, /item\.keyRank \? 'key' : 'muted'/);
-  assert.match(wxml, /上一个关键位点/);
-  assert.match(wxml, /下一个关键位点/);
+  assert.match(wxml, /← Previous/);
+  assert.match(wxml, /Next →/);
   assert.match(wxss, /\.sequence-row\{[^}]*display:inline-flex/);
   assert.match(wxss, /\.sequence-position\.muted \.base-box\{/);
   assert.match(wxss, /\.sequence-position\.key \.base-box\{/);

@@ -29,7 +29,7 @@ Component({
       const centered = Math.max(0, selectedIndex - Math.floor(this.data.windowSize / 2));
       this.setData({
         layers,
-        layerLabels: layers.map((item, index) => `第 ${Number(item.layer) + 1 || index + 1} 层`),
+        layerLabels: layers.map((item, index) => `Layer ${Number(item.layer) + 1 || index + 1}`),
         layerIndex: Math.min(this.data.layerIndex, Math.max(0, layers.length - 1)),
         selectedIndex,
         windowStart: centered,

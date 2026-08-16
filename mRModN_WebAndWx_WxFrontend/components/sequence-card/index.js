@@ -4,7 +4,7 @@ Component({
   data: { focused: false },
   observers: {
     value(value) {
-      const validation = value ? validateSequence(value) : { valid: false, message: '等待输入' };
+      const validation = value ? validateSequence(value) : { valid: false, message: 'Waiting for input' };
       this.setData({ summary: summarizeSequence(value), validation });
     }
   },

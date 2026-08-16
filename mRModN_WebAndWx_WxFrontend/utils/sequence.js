@@ -1,10 +1,10 @@
 function cleanSequence(value) { return String(value || '').toUpperCase().replace(/[^ACGUTN]/g, ''); }
 function validateSequence(value, minLength = 51, maxLength = 1001) {
   const sequence = cleanSequence(value);
-  if (!sequence) return { valid: false, sequence, message: '请输入 RNA 序列' };
-  if (sequence.length < minLength) return { valid: false, sequence, message: `至少需要 ${minLength} 个核苷酸` };
-  if (sequence.length > maxLength) return { valid: false, sequence, message: `序列不能超过 ${maxLength} 个核苷酸` };
-  return { valid: true, sequence, message: '序列格式正确' };
+  if (!sequence) return { valid: false, sequence, message: 'Enter an RNA sequence' };
+  if (sequence.length < minLength) return { valid: false, sequence, message: `At least ${minLength} nucleotides are required` };
+  if (sequence.length > maxLength) return { valid: false, sequence, message: `The sequence cannot exceed ${maxLength} nucleotides` };
+  return { valid: true, sequence, message: 'Sequence format is valid' };
 }
 function summarizeSequence(value) {
   const sequence = cleanSequence(value);

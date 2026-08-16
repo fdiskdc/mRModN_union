@@ -1,10 +1,10 @@
 <view class="page-shell home-page">
   <app-header isLoggedIn="{{isLoggedIn}}" isLogging="{{isLogging}}" userInfo="{{userInfo}}" bindlogin="onLoginTap" bindlogout="onLogoutTap"></app-header>
-  <view class="hero"><text class="eyebrow">移动端科研分析工具</text><text class="hero-title">RNA 修饰识别与结构可视化</text><text class="hero-desc">一次提交即可获得 12 类修饰预测、注意力位点和 RNA 二级结构。</text><view class="chips"><text>12 类修饰</text><text>最多 5 条序列</text><text>2D / 3D 结构</text></view></view>
-  <view class="section-head"><view><text class="section-title">输入 RNA 序列</text><text class="section-note">至少 51 nt，仅支持 A/C/G/U/T/N</text></view><view class="tools"><text class="{{isLoadingExample ? 'disabled' : ''}}" bindtap="useExample">{{isLoadingExample ? '示例加载中…' : '换示例'}}</text><text bindtap="clearAll">清空</text></view></view>
+  <view class="hero"><text class="eyebrow">Mobile Research Toolkit</text><text class="hero-title">RNA Modification Prediction & Structure Visualization</text><text class="hero-desc">Submit once to obtain predictions for 12 modification types, attention sites, and RNA secondary structure.</text><view class="chips"><text>12 modification types</text><text>Up to 5 sequences</text><text>2D / 3D structures</text></view></view>
+  <view class="section-head"><view><text class="section-title">Enter RNA Sequences</text><text class="section-note">At least 51 nt; A/C/G/U/T/N only</text></view><view class="tools"><text class="{{isLoadingExample ? 'disabled' : ''}}" bindtap="useExample">{{isLoadingExample ? 'Loading Example…' : 'New Example'}}</text><text bindtap="clearAll">Clear</text></view></view>
   <view class="sequence-list"><sequence-card wx:for="{{rnaSequences}}" wx:key="index" index="{{index}}" value="{{item.value}}" removable="{{rnaSequences.length > 1}}" bindchange="onSequenceChange" bindremove="onDeleteSequence"></sequence-card></view>
-  <button wx:if="{{rnaSequences.length < 5}}" class="add-button" bindtap="onAddSequence">＋ 添加序列（{{rnaSequences.length}} / 5）</button>
-  <view class="capability"><text class="cap-title">分析结果包含</text><view class="cap-grid"><view><b>01</b><text>修饰分类</text></view><view><b>02</b><text>注意力分布</text></view><view><b>03</b><text>RNA 结构图</text></view></view></view>
+  <button wx:if="{{rnaSequences.length < 5}}" class="add-button" bindtap="onAddSequence">+ Add Sequence ({{rnaSequences.length}} / 5)</button>
+  <view class="capability"><text class="cap-title">Analysis Includes</text><view class="cap-grid"><view><b>01</b><text>Modification Classification</text></view><view><b>02</b><text>Attention Distribution</text></view><view><b>03</b><text>RNA Structure</text></view></view></view>
 </view>
-<view class="bottom-action safe-bottom"><button class="primary-button" loading="{{isSubmitting}}" disabled="{{isSubmitting}}" bindtap="onSubmitTap">{{isSubmitting ? '正在提交…' : '开始分析'}}</button></view>
+<view class="bottom-action safe-bottom"><button class="primary-button" loading="{{isSubmitting}}" disabled="{{isSubmitting}}" bindtap="onSubmitTap">{{isSubmitting ? 'Submitting…' : 'Start Analysis'}}</button></view>
 <analysis-progress visible="{{showProgress}}" current="{{progressCurrent}}" total="{{progressTotal}}"></analysis-progress>

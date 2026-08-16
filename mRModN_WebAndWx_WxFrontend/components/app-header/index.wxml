@@ -4,8 +4,8 @@
     <text class="brand-en">RNA Modification Analysis</text>
   </view>
   <view wx:if="{{isLoggedIn}}" class="user" bindtap="onLogout">
-    <text>{{userInfo.nickname || '用户'}}</text>
+    <text>{{userInfo.nickname || 'User'}}</text>
     <image src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
   </view>
-  <button wx:else class="login" loading="{{isLogging}}" disabled="{{isLogging}}" bindtap="onLogin">登录</button>
+  <button wx:else class="login" loading="{{isLogging}}" disabled="{{isLogging}}" bindtap="onLogin">Sign In</button>
 </view>

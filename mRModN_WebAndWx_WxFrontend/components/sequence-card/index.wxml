@@ -1,5 +1,5 @@
 <view class="card {{focused ? 'focused' : ''}}">
-  <view class="header"><view><text class="label">序列 {{index + 1}}</text><text class="length">{{summary.length || 0}} nt</text></view><text wx:if="{{removable}}" class="remove" bindtap="onRemove">删除</text></view>
-  <textarea class="input" value="{{value}}" placeholder="粘贴 RNA 序列，仅保留 A/C/G/U/T/N" maxlength="-1" auto-height="{{false}}" bindinput="onInput" bindfocus="onFocus" bindblur="onBlur"></textarea>
+  <view class="header"><view><text class="label">Sequence {{index + 1}}</text><text class="length">{{summary.length || 0}} nt</text></view><text wx:if="{{removable}}" class="remove" bindtap="onRemove">Remove</text></view>
+  <textarea class="input" value="{{value}}" placeholder="Paste an RNA sequence containing only A/C/G/U/T/N" maxlength="-1" auto-height="{{false}}" bindinput="onInput" bindfocus="onFocus" bindblur="onBlur"></textarea>
   <view class="meta"><text class="status {{validation.valid ? 'valid' : ''}}">{{validation.message}}</text><text>GC {{summary.gc || 0}}%</text></view>
 </view>

@@ -4,7 +4,7 @@ function edgeIndices(edge, nodeMap) {
   return [source, target];
 }
 function normalizeGraph(graph, sequence) {
-  const nodes = (graph && graph.nodes) || String(sequence || '').split('').map((base, index) => ({ id: `${base}${index}`, index, base, label: `位置 ${index + 1}: ${base}` }));
+  const nodes = (graph && graph.nodes) || String(sequence || '').split('').map((base, index) => ({ id: `${base}${index}`, index, base, label: `Position ${index + 1}: ${base}` }));
   const nodeMap = {}; nodes.forEach((node, index) => { nodeMap[node.id] = typeof node.index === 'number' ? node.index : (node.data && node.data.index) || index; });
   const seen = {};
   const edges = ((graph && graph.edges) || []).map((edge) => {

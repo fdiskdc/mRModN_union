@@ -4,7 +4,7 @@ const RETRYABLE_STATUS = [502, 503, 504];
 function normalizeError(resOrError, fallbackMessage) {
   const statusCode = resOrError && resOrError.statusCode;
   const data = (resOrError && resOrError.data) || {};
-  const message = data.message || data.error || (resOrError && resOrError.errMsg) || fallbackMessage || '请求失败';
+  const message = data.message || data.error || (resOrError && resOrError.errMsg) || fallbackMessage || 'Request failed';
   return {
     message,
     statusCode: statusCode || 0,
@@ -27,7 +27,7 @@ function requestWithFallback(endpoint, options = {}, maxAttempts) {
 
   const promise = new Promise((resolve, reject) => {
     const execute = () => {
-      if (cancelled) return reject(normalizeError(null, '请求已取消'));
+      if (cancelled) return reject(normalizeError(null, 'Request cancelled'));
       const serverIndex = api.getCurrentServerIndex();
       const url = api.buildApiUrl(endpoint, serverIndex);
       task = wx.request({
@@ -51,7 +51,7 @@ function requestWithFallback(endpoint, options = {}, maxAttempts) {
           } else reject(error);
         },
         fail(err) {
-          const error = normalizeError(err, '网络连接失败');
+          const error = normalizeError(err, 'Network connection failed');
           if (++attempt < attempts) {
             api.switchToNextServer();
             execute();

@@ -7,17 +7,17 @@
 ></web-view>
 <cover-view wx:if="{{loading}}" class="webview-state loading-state">
   <cover-view class="loading-ring"></cover-view>
-  <cover-view class="state-title">正在打开交互式 3D</cover-view>
-  <cover-view class="state-description">首次加载需要下载渲染资源，请稍候</cover-view>
+  <cover-view class="state-title">Opening Interactive 3D</cover-view>
+  <cover-view class="state-description">The first load downloads rendering assets. Please wait.</cover-view>
 </cover-view>
 <cover-view wx:if="{{error}}" class="webview-state error-state">
   <cover-view class="state-card">
-    <cover-view class="state-title">3D 页面加载失败</cover-view>
-    <cover-view class="state-description">请检查网络、Web 前端服务和业务域名配置</cover-view>
+    <cover-view class="state-title">Failed to Load the 3D View</cover-view>
+    <cover-view class="state-description">Check the network, web frontend service, and business-domain settings.</cover-view>
     <cover-view class="error-detail">{{error}}</cover-view>
     <cover-view class="state-actions">
-      <cover-view class="state-button secondary" bindtap="goBack">返回二维结构</cover-view>
-      <cover-view class="state-button primary" bindtap="retry">重新加载</cover-view>
+      <cover-view class="state-button secondary" bindtap="goBack">Back to 2D Structure</cover-view>
+      <cover-view class="state-button primary" bindtap="retry">Reload</cover-view>
     </cover-view>
   </cover-view>
 </cover-view>

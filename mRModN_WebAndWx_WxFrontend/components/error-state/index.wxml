@@ -1,1 +1,1 @@
-<view class="state"><text class="icon">!</text><text class="title">加载失败</text><text class="desc">{{message}}</text><button bindtap="retry">重新加载</button></view>
+<view class="state"><text class="icon">!</text><text class="title">Failed to Load</text><text class="desc">{{message}}</text><button bindtap="retry">Reload</button></view>

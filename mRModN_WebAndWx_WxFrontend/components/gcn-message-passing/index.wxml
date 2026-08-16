@@ -1,11 +1,11 @@
 <view class="gcn-root">
-  <view class="layer-row"><text class="block-title">消息层</text><picker wx:if="{{layerLabels.length}}" mode="selector" range="{{layerLabels}}" value="{{layerIndex}}" bindchange="onLayerChange"><view class="layer-picker">{{layerLabels[layerIndex]}}⌄</view></picker></view>
-  <view class="legend"><view><text class="dot target"></text><text>目标位点</text></view><view><text class="dot message"></text><text>消息来源</text></view><view><text class="dot muted"></text><text>其他位点</text></view></view>
+  <view class="layer-row"><text class="block-title">Message Layer</text><picker wx:if="{{layerLabels.length}}" mode="selector" range="{{layerLabels}}" value="{{layerIndex}}" bindchange="onLayerChange"><view class="layer-picker">{{layerLabels[layerIndex]}}⌄</view></picker></view>
+  <view class="legend"><view><text class="dot target"></text><text>Target Site</text></view><view><text class="dot message"></text><text>Message Sources</text></view><view><text class="dot muted"></text><text>Other Sites</text></view></view>
   <view class="sequence-card">
     <view class="sequence-grid"><view wx:for="{{visibleSites}}" wx:key="index" class="site {{item.role}}" style="opacity:{{item.role === 'message' ? item.opacity : 1}}"><text class="position">{{item.position}}</text><text class="base">{{item.base}}</text><text class="score">{{item.strengthText}}</text></view></view>
-    <view class="pager"><button disabled="{{!canPrev}}" bindtap="previous">上一个</button><text>{{windowStart + 1}}–{{windowEnd}} / {{sites.length}}</text><button disabled="{{!canNext}}" bindtap="next">下一个</button></view>
+    <view class="pager"><button disabled="{{!canPrev}}" bindtap="previous">Previous</button><text>{{windowStart + 1}}–{{windowEnd}} / {{sites.length}}</text><button disabled="{{!canNext}}" bindtap="next">Next</button></view>
   </view>
-  <view class="ranking"><text class="block-title">消息强度排序</text><view wx:if="{{!messages.length}}" class="empty">当前层没有返回消息。</view><view wx:for="{{messages}}" wx:key="index" class="rank-row"><text class="rank">{{item.rank}}</text><text>{{item.base}}{{item.position}} → 目标位点</text><text class="strength">{{item.strengthText}}</text></view></view>
-  <view class="graph-title"><text class="block-title">RNA 结构定位</text><text>目标节点与消息节点已高亮</text></view>
+  <view class="ranking"><text class="block-title">Message Strength Ranking</text><view wx:if="{{!messages.length}}" class="empty">No messages were returned for this layer.</view><view wx:for="{{messages}}" wx:key="index" class="rank-row"><text class="rank">{{item.rank}}</text><text>{{item.base}}{{item.position}} → target site</text><text class="strength">{{item.strengthText}}</text></view></view>
+  <view class="graph-title"><text class="block-title">RNA Structure Mapping</text><text>Target and message nodes are highlighted</text></view>
   <rna-graph graph="{{result}}" sequence="{{sequence}}" highlighted-indices="{{highlightedIndices}}" selected-index="{{selectedIndex}}" bindselect="onGraphSelect"></rna-graph>
 </view>

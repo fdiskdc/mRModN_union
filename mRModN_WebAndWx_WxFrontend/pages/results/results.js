@@ -4,15 +4,15 @@ const { MODIFICATIONS } = require('../../utils/constants/modifications');
 const { normalizeGraph, topAttentionIndices } = require('../../utils/graph');
 
 const GROUP_LABELS = {
-  'Group A': '腺嘌呤 A', 'Group C': '胞嘧啶 C', 'Group G': '鸟嘌呤 G', 'Group U': '尿嘧啶 U',
-  A: '腺嘌呤 A', C: '胞嘧啶 C', G: '鸟嘌呤 G', U: '尿嘧啶 U',
+  'Group A': 'Adenine A', 'Group C': 'Cytosine C', 'Group G': 'Guanine G', 'Group U': 'Uracil U',
+  A: 'Adenine A', C: 'Cytosine C', G: 'Guanine G', U: 'Uracil U',
 };
 const RESULT_TABS = [
-  { value: 'overview', label: '概览', icon: '⌂' },
-  { value: 'classification', label: '分类', icon: '▦' },
-  { value: 'attention', label: '注意力', icon: '◉' },
-  { value: 'structure', label: 'RNA 结构', icon: '⌬' },
-  { value: 'interpretability', label: '可解释性', icon: '◎' },
+  { value: 'overview', label: 'Overview', icon: '⌂' },
+  { value: 'classification', label: 'Classes', icon: '▦' },
+  { value: 'attention', label: 'Attention', icon: '◉' },
+  { value: 'structure', label: 'Structure', icon: '⌬' },
+  { value: 'interpretability', label: 'Explain', icon: '◎' },
 ];
 const TOP_K_OPTIONS = [5, 10, 20];
 
@@ -32,7 +32,7 @@ function formatClassification(value) {
       children: groupChildren,
     };
   });
-  return { ...(value || {}), name: 'RNA 修饰分类', children };
+  return { ...(value || {}), name: 'RNA Modification Classification', children };
 }
 
 function predictedNames(classification) {
@@ -55,7 +55,7 @@ function prepareResult(item, displayIndex) {
   const topClass = classes.slice().sort((a, b) => Number(b.probability || 0) - Number(a.probability || 0))[0];
   const topModification = topClass && typeof topClass.probability === 'number'
     ? `${topClass.name} · ${(topClass.probability * 100).toFixed(1)}%`
-    : (topClass && topClass.name) || '暂无概率数据';
+    : (topClass && topClass.name) || 'No probability data';
   return {
     ...item,
     displayIndex,
@@ -100,7 +100,7 @@ Page({
 
   onLoad(options) {
     this.explanationTimers = {};
-    if (!options.batchJobId) { this.setData({ isLoading: false, error: '缺少批量任务 ID' }); return; }
+    if (!options.batchJobId) { this.setData({ isLoading: false, error: 'Missing batch task ID' }); return; }
     const batchJobId = decodeURIComponent(options.batchJobId);
     this.setData({ batchJobId });
     const cached = wx.getStorageSync(`batch:${batchJobId}`);
@@ -114,23 +114,23 @@ Page({
     this.setData({ error: '' });
     return requestWithFallback(ENDPOINTS.WX_TASK_PROGRESS(this.data.batchJobId), { method: 'GET' }).then((res) => {
       const payload = res.data && res.data.data;
-      if (!payload) throw { message: '任务响应格式无效' };
+      if (!payload) throw { message: 'Invalid task response format' };
       const results = (payload.results || []).slice().sort((a, b) => a.index - b.index);
       wx.setStorageSync(`batch:${this.data.batchJobId}`, { batchJobId: this.data.batchJobId, results, status: payload.status, updatedAt: Date.now() });
       this.applyResults(results, true);
     }).catch((err) => {
       if (err.statusCode === 401) {
         wx.removeStorageSync('sessionToken');
-        this.setData({ isLoading: false, error: '登录已失效，请返回首页重新登录' });
+        this.setData({ isLoading: false, error: 'Your session has expired. Return to the home page and sign in again.' });
         return;
       }
-      if (!this.data.results.length) this.setData({ isLoading: false, error: err.message || '无法加载结果' });
+      if (!this.data.results.length) this.setData({ isLoading: false, error: err.message || 'Unable to load results' });
     });
   },
   applyResults(items, refresh) {
     const valid = items.filter((item) => item.status !== 'failed').map((item, index) => prepareResult(item, index + 1));
     if (!valid.length) {
-      this.setData({ isLoading: false, error: items.length ? '所有序列分析均失败' : '任务尚未产生结果' });
+      this.setData({ isLoading: false, error: items.length ? 'Analysis failed for all sequences' : 'The task has not produced any results yet' });
       return;
     }
     const index = Math.min(this.data.currentResultIndex, valid.length - 1);
@@ -216,7 +216,7 @@ Page({
     requestWithFallback(ENDPOINTS.WX_EXPLANATION_INTEGRATED_GRADIENTS, {
       method: 'POST', timeout: 60000, data: { rnaSequence: sequence, targetClassId },
     }).then((response) => this.handleExplanationSubmission('ig', explanationPayload(response)))
-      .catch((error) => this.setData({ igLoading: false, igError: error.message || '梯度归因提交失败' }));
+      .catch((error) => this.setData({ igLoading: false, igError: error.message || 'Failed to submit Integrated Gradients computation' }));
   },
   runGcnMessagePassing() {
     const result = this.data.currentResult;
@@ -226,24 +226,24 @@ Page({
     requestWithFallback(ENDPOINTS.WX_EXPLANATION_GCN, {
       method: 'POST', timeout: 60000, data: { rnaSequence: result.sequence, targetNodeIdx },
     }).then((response) => this.handleExplanationSubmission('gcn', explanationPayload(response)))
-      .catch((error) => this.setData({ gcnLoading: false, gcnError: error.message || 'GCN 消息计算提交失败' }));
+      .catch((error) => this.setData({ gcnLoading: false, gcnError: error.message || 'Failed to submit GCN message computation' }));
   },
   handleExplanationSubmission(kind, payload) {
     if (payload.result) { this.finishExplanation(kind, payload.result); return; }
-    if (!payload.jobId) { this.failExplanation(kind, payload.message || '后端未返回解释任务 ID'); return; }
+    if (!payload.jobId) { this.failExplanation(kind, payload.message || 'The server did not return an interpretation task ID'); return; }
     this.pollExplanation(kind, payload.jobId, 0);
   },
   pollExplanation(kind, jobId, attempt) {
-    if (attempt > 240) { this.failExplanation(kind, '解释任务等待超时，请稍后重试'); return; }
+    if (attempt > 240) { this.failExplanation(kind, 'The interpretation task timed out. Please try again later.'); return; }
     requestWithFallback(ENDPOINTS.WX_EXPLANATION_RESULT(jobId), { method: 'GET', timeout: 30000 }).then((response) => {
       const payload = explanationPayload(response);
       const status = String(payload.status || '').toUpperCase();
       if (status === 'SUCCESS' || status === 'COMPLETED') { this.finishExplanation(kind, payload.result || payload); return; }
-      if (status === 'FAILURE' || status === 'FAILED') { this.failExplanation(kind, payload.error || '解释任务计算失败'); return; }
+      if (status === 'FAILURE' || status === 'FAILED') { this.failExplanation(kind, payload.error || 'Interpretation computation failed'); return; }
       this.explanationTimers[kind] = setTimeout(() => this.pollExplanation(kind, jobId, attempt + 1), 1500);
     }).catch((error) => {
       if (attempt < 3) this.explanationTimers[kind] = setTimeout(() => this.pollExplanation(kind, jobId, attempt + 1), 1800);
-      else this.failExplanation(kind, error.message || '无法获取解释任务结果');
+      else this.failExplanation(kind, error.message || 'Unable to retrieve interpretation results');
     });
   },
   finishExplanation(kind, result) {

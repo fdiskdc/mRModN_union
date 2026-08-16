@@ -1,12 +1,12 @@
 <view class="card">
   <view class="heading">
     <view>
-      <text>修饰分类</text>
-      <text class="count">检出 {{positiveCount}} 类修饰 · 共 12 类</text>
+      <text>Modification Classification</text>
+      <text class="count">{{positiveCount}} modifications detected · 12 total</text>
     </view>
-    <text class="legend"><i></i>预测阳性</text>
+    <text class="legend"><i></i>Predicted positive</text>
   </view>
-  <view wx:if="{{!groups.length}}" class="empty">暂无分类结果</view>
+  <view wx:if="{{!groups.length}}" class="empty">No classification results</view>
   <view wx:for="{{groups}}" wx:key="name" class="group">
     <view class="group-title base-{{item.baseTone}} {{item.isPredicted ? 'active' : ''}}">
       <text>{{item.name}}</text>
@@ -18,7 +18,7 @@
           <text class="mod-name">{{mod.name}}</text>
           <text class="probability">{{mod.probabilityText}}</text>
         </view>
-        <text class="state">{{mod.isPredicted ? '已检出 ✓' : '未检出'}}</text>
+        <text class="state">{{mod.isPredicted ? 'Detected ✓' : 'Not detected'}}</text>
       </view>
     </view>
   </view>

@@ -1,5 +1,5 @@
 {
-  "navigationBarTitleText": "分析结果",
+  "navigationBarTitleText": "Analysis Results",
   "usingComponents": {
     "result-summary": "/components/result-summary/index",
     "classification-tree": "/components/classification-tree/index",

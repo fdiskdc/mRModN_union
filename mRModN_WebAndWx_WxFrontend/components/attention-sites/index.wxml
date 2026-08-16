@@ -1,31 +1,31 @@
 <view class="card">
   <view class="heading">
-    <text>关键位点</text>
+    <text>Key Sites</text>
     <text wx:if="{{sites.length}}">{{siteIndex + 1}} / {{sites.length}}</text>
   </view>
   <view class="controls">
     <picker mode="selector" range="{{modificationNames}}" value="{{selectedPickerIndex}}" bindchange="onModification">
-      <view class="picker">{{selectedName || '暂无阳性类别'}}⌄</view>
+      <view class="picker">{{selectedName || 'No positive class'}}⌄</view>
     </picker>
     <view class="top">Top <input type="number" value="{{topX}}" bindblur="onTopX"/></view>
   </view>
   <block wx:if="{{sites.length}}">
     <view class="score">
       <view>
-        <text class="score-label">当前关键位点 · Top {{sites[siteIndex].rank}}</text>
-        <text>位置 {{sites[siteIndex].index + 1}}</text>
+        <text class="score-label">Current Key Site · Top {{sites[siteIndex].rank}}</text>
+        <text>Position {{sites[siteIndex].index + 1}}</text>
       </view>
       <text>{{sites[siteIndex].scoreText}}</text>
     </view>
 
     <view class="sequence-heading">
       <view>
-        <text class="sequence-title">RNA 序列</text>
-        <text class="sequence-desc">Top 位点陶土色高亮，其他位点灰色；可左右滑动</text>
+        <text class="sequence-title">RNA Sequence</text>
+        <text class="sequence-desc">Top sites are highlighted in terracotta; other sites remain gray. Swipe horizontally.</text>
       </view>
       <view class="legend">
-        <view class="legend-dot key-dot"></view><text>关键</text>
-        <view class="legend-dot muted-dot"></view><text>其他</text>
+        <view class="legend-dot key-dot"></view><text>Key</text>
+        <view class="legend-dot muted-dot"></view><text>Other</text>
       </view>
     </view>
 
@@ -58,9 +58,9 @@
     </scroll-view>
 
     <view class="nav">
-      <button disabled="{{siteIndex <= 0}}" bindtap="prev">← 上一个关键位点</button>
-      <button disabled="{{siteIndex >= sites.length - 1}}" bindtap="next">下一个关键位点 →</button>
+      <button disabled="{{siteIndex <= 0}}" bindtap="prev">← Previous</button>
+      <button disabled="{{siteIndex >= sites.length - 1}}" bindtap="next">Next →</button>
     </view>
   </block>
-  <empty-state wx:else title="暂无关键位点" description="当前类别没有可展示的注意力位点"></empty-state>
+  <empty-state wx:else title="No Key Sites" description="No attention sites are available for this class."></empty-state>
 </view>
